@@ -8,7 +8,7 @@ import android.view.WindowManager;
 
 public class MainActivity extends Activity {
 
-    private static final int SCREEN_ORIENTATION = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+    private static final int SCREEN_ORIENTATION = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 
     @Override
 

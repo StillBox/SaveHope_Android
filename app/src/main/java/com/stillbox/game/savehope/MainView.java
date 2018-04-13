@@ -10,7 +10,6 @@ import android.view.SurfaceView;
 public class MainView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 
     //Fields for main view
-
     public static MainView mainView;
     public Resources resources;
 
@@ -19,8 +18,10 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
     private Thread thread;
 
     //Fields for drawing and updating
-    private static final float FPS = 60f;
-    private float timeStep = 1000f / FPS;
+    public static final float DEST_WIDTH = 1920;
+    public static final float DEST_HEIGHT = 1080;
+    public static final float FPS = 60f;
+    public float timeStep = 1000f / FPS;
 
     private SurfaceHolder surfaceHolder;
     private Canvas canvas;

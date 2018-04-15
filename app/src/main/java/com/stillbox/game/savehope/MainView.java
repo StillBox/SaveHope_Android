@@ -10,6 +10,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.stillbox.game.savehope.gamescene.GameScene;
+import com.stillbox.game.savehope.gamescene.MenuScene;
 import com.stillbox.game.savehope.gamescene.OpeningScene;
 
 public class MainView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
@@ -36,11 +37,12 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
     public static boolean bIsDebugMode = true;
 
     //Fields for game
-    private static final int GAME_OPENING = 0;
-    private static final int GAME_MENU = 1;
+    public static final int GAME_OPENING = 0;
+    public static final int GAME_MENU = 1;
 
     private GameScene gameScene;
     private int currentScene;
+    private boolean bInitScene;
 
     public MainView(Context context) {
         super(context);
@@ -55,9 +57,6 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d("method_call", "Surface Created");
-
-        currentScene = GAME_OPENING;
-        gameScene = new OpeningScene();
 
         init();
         bExecute = true;
@@ -101,11 +100,13 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
+        gameScene.onTouchEvent(event);
         return true;
     }
 
     public void init() {
 
+        setScene(GAME_OPENING);
     }
 
     public void draw() {
@@ -127,17 +128,24 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
 
     public void update(long elapsedTime) {
 
+        if (bInitScene) {
+            switch (currentScene) {
+                case GAME_OPENING:
+                    gameScene = new OpeningScene();
+                    break;
+                case GAME_MENU:
+                    gameScene = new MenuScene();
+                    break;
+            }
+            bInitScene = false;
+        }
+
         gameScene.update(elapsedTime);
     }
 
     public void setScene(int scene) {
 
         currentScene = scene;
-        switch (scene) {
-            case GAME_OPENING:
-                break;
-            case GAME_MENU:
-                break;
-        }
+        bInitScene = true;
     }
 }

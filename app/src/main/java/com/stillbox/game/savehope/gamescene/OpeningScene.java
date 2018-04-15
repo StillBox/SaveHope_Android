@@ -22,6 +22,9 @@ public class OpeningScene extends GameScene {
 
     private int updateTime;
 
+    private boolean bSceneOver;
+    private int countDown;
+
     public OpeningScene() {
 
         int spacing_x = (int) screenW / 160;
@@ -88,6 +91,8 @@ public class OpeningScene extends GameScene {
     public void init() {
 
         updateTime = 0;
+        bSceneOver = false;
+        countDown = 1024;
     }
 
     @Override
@@ -104,6 +109,14 @@ public class OpeningScene extends GameScene {
         for (Block block : blocks) {
             block.draw(canvas);
         }
+        if (bSceneOver) {
+            paint.setColor(Color.BLACK);
+            if (countDown > 0) {
+                int alpha = (1024 - countDown) / 4;
+                paint.setAlpha(alpha);
+            }
+            canvas.drawRect(0, 0, screenW, screenH, paint);
+        }
     }
 
     @Override
@@ -114,11 +127,26 @@ public class OpeningScene extends GameScene {
         for (Block block : blocks) {
             block.update(elapsedTime);
         }
+
+        if (updateTime > 6000) {
+            bSceneOver = true;
+            countDown = 0;
+        }
+
+        if (bSceneOver) {
+            countDown -= elapsedTime;
+            if (countDown <= 0)
+                MainView.mainView.setScene(MainView.GAME_MENU);
+        }
     }
 
     @Override
     public void onTouchEvent(MotionEvent event) {
 
+        if (!bSceneOver && updateTime >= 1000 && event.getAction() == MotionEvent.ACTION_DOWN) {
+            bSceneOver = true;
+            countDown = 1024;
+        }
     }
 
     private class Block {
@@ -242,7 +270,7 @@ public class OpeningScene extends GameScene {
                 y = spacing * (blockCount_y / 2 - 6);
             }
 
-            if (updateTime >= 4000f && updateTime <= 6000f)
+            if (updateTime >= 4000f)
                 scale = 1f + (float) Math.pow((updateTime - 4000f) / 100f, 2);
         }
 

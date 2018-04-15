@@ -1,8 +1,11 @@
-package com.stillbox.game.savehope;
+package com.stillbox.game.savehope.gameobject;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+
+import com.stillbox.game.savehope.MainView;
+import com.stillbox.game.savehope.gameobject.GameObject;
 
 public class LoadingBox extends GameObject {
 

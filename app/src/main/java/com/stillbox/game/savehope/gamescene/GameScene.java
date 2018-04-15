@@ -1,6 +1,9 @@
-package com.stillbox.game.savehope;
+package com.stillbox.game.savehope.gamescene;
 
 import android.graphics.Canvas;
+import android.view.MotionEvent;
+
+import com.stillbox.game.savehope.MainView;
 
 public abstract class GameScene {
 
@@ -18,4 +21,6 @@ public abstract class GameScene {
     public abstract void draw(Canvas canvas);
 
     public abstract void update(long elapsedTime);
+
+    public abstract void onTouchEvent(MotionEvent event);
 }

@@ -1,4 +1,4 @@
-package com.stillbox.game.savehope;
+package com.stillbox.game.savehope.gameobject;
 
 import android.graphics.Canvas;
 

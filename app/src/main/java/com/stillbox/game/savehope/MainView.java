@@ -3,15 +3,20 @@ package com.stillbox.game.savehope;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import com.stillbox.game.savehope.gamescene.GameScene;
+import com.stillbox.game.savehope.gamescene.OpeningScene;
 
 public class MainView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 
     //Fields for main view
     public static MainView mainView;
-    public Resources resources;
+    public static Resources resources;
 
     //Fields for threads
     private boolean bExecute;
@@ -31,6 +36,11 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
     public static boolean bIsDebugMode = true;
 
     //Fields for game
+    private static final int GAME_OPENING = 0;
+    private static final int GAME_MENU = 1;
+
+    private GameScene gameScene;
+    private int currentScene;
 
     public MainView(Context context) {
         super(context);
@@ -45,6 +55,9 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d("method_call", "Surface Created");
+
+        currentScene = GAME_OPENING;
+        gameScene = new OpeningScene();
 
         init();
         bExecute = true;
@@ -85,6 +98,12 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
         }
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        return true;
+    }
+
     public void init() {
 
     }
@@ -95,7 +114,8 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
         try {
             canvas = surfaceHolder.lockCanvas();
             if (canvas != null) {
-
+                canvas.drawColor(Color.BLACK);
+                gameScene.draw(canvas);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -107,5 +127,17 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
 
     public void update(long elapsedTime) {
 
+        gameScene.update(elapsedTime);
+    }
+
+    public void setScene(int scene) {
+
+        currentScene = scene;
+        switch (scene) {
+            case GAME_OPENING:
+                break;
+            case GAME_MENU:
+                break;
+        }
     }
 }

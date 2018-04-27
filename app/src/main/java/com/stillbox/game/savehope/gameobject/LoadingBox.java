@@ -3,6 +3,7 @@ package com.stillbox.game.savehope.gameobject;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.view.MotionEvent;
 
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.gameobject.GameObject;
@@ -23,13 +24,17 @@ public class LoadingBox extends GameObject {
         float ratioW = w / MainView.DEST_WIDTH;
         float ratioH = h / MainView.DEST_HEIGHT;
         float ratio = Math.min(ratioW, ratioH);
-        textSize = Math.round(20f * ratio);
+        textSize = Math.round(48f * ratio);
     }
 
     @Override
-    public void draw(Canvas canvas) {
+    public void onDestroy() {
 
-        Paint paint = new Paint();
+    }
+
+    @Override
+    public void draw(Canvas canvas, Paint paint) {
+
         int maxWidth = (int) paint.measureText("Loading...");
         int count = updateTime / 1000;
         String text = "Loading.";
@@ -55,6 +60,34 @@ public class LoadingBox extends GameObject {
         updateTime += elapsedTime;
         if (updateTime >= 3000) {
             updateTime -= 3000;
+        }
+    }
+
+    @Override
+    public void onTouchEvent(MotionEvent event) {
+
+    }
+
+    public int getMaxProgress() {
+        return maxProgress;
+    }
+
+    public void setMaxProgress(int maxProgress) {
+        this.maxProgress = maxProgress;
+    }
+
+    public int getCurrentProgress() {
+        return currentProgress;
+    }
+
+    public void setCurrentProgress(int currentProgress) {
+        this.currentProgress = currentProgress;
+    }
+
+    public void increaseProgress(int increment) {
+        currentProgress += increment;
+        if (currentProgress > maxProgress) {
+            currentProgress = maxProgress;
         }
     }
 }

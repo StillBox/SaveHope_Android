@@ -10,7 +10,6 @@ import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class OpeningScene extends GameScene {
 
@@ -27,11 +26,11 @@ public class OpeningScene extends GameScene {
 
     public OpeningScene() {
 
-        int spacing_x = (int) screenW / 160;
-        int spacing_y = (int) screenH / 90;
+        int spacing_x = (int) screen_w / 160;
+        int spacing_y = (int) screen_h / 90;
         spacing = Math.min(spacing_x, spacing_y);
-        blockCount_x = (int) screenW / (int) spacing;
-        blockCount_y = (int) screenH / (int) spacing;
+        blockCount_x = (int) screen_w / (int) spacing;
+        blockCount_y = (int) screen_h / (int) spacing;
 
         blocks = new ArrayList<>();
         int x, y;
@@ -96,18 +95,25 @@ public class OpeningScene extends GameScene {
     }
 
     @Override
-    public void draw(Canvas canvas) {
+    public void onDestroy() {
 
-        Paint paint = new Paint();
+        blocks.clear();
+        blocks = null;
+        meteor = null;
+    }
+
+    @Override
+    public void draw(Canvas canvas, Paint paint) {
+
         paint.setColor(Color.WHITE);
         if (updateTime < 1024) {
             int alpha = updateTime / 4;
             paint.setAlpha(alpha);
         }
-        canvas.drawRect(0, 0, screenW, screenH, paint);
-        meteor.draw(canvas);
+        canvas.drawRect(0, 0, screen_w, screen_h, paint);
+        meteor.draw(canvas, paint);
         for (Block block : blocks) {
-            block.draw(canvas);
+            block.draw(canvas, paint);
         }
         if (bSceneOver) {
             paint.setColor(Color.BLACK);
@@ -115,7 +121,7 @@ public class OpeningScene extends GameScene {
                 int alpha = (1024 - countDown) / 4;
                 paint.setAlpha(alpha);
             }
-            canvas.drawRect(0, 0, screenW, screenH, paint);
+            canvas.drawRect(0, 0, screen_w, screen_h, paint);
         }
     }
 
@@ -168,11 +174,9 @@ public class OpeningScene extends GameScene {
             bActivate = false;
         }
 
-        void draw(Canvas canvas) {
+        void draw(Canvas canvas, Paint paint) {
 
             if (bShow) {
-                Paint paint = new Paint();
-                paint.setAntiAlias(true);
                 paint.setColor(Color.BLACK);
                 if (updateTime < SHOW_TIME / 4) {
                     int alpha = (updateTime + SHOW_TIME / 4) / 2;
@@ -196,10 +200,9 @@ public class OpeningScene extends GameScene {
                 if (bActivate) {
                     updateTime += elapsedTime;
                     activeTime += elapsedTime;
-                    Random random = new Random();
                     while (updateTime >= 20 && !bShow) {
                         updateTime -= 20;
-                        if (random.nextInt() % 8 == 0 || activeTime >= SHOW_TIME / 4) {
+                        if (Math.random() < 0.125 || activeTime >= SHOW_TIME / 4) {
                             bShow = true;
                             updateTime = -SHOW_TIME / 4;
                         }
@@ -232,7 +235,7 @@ public class OpeningScene extends GameScene {
             updateTime = -1000;
         }
 
-        void draw(Canvas canvas) {
+        void draw(Canvas canvas, Paint paint) {
 
             Path path = new Path();
             path.moveTo(x + spacing * scale * (float) (Math.sqrt(2) * Math.cos(angle)), y + spacing * scale * (float) (Math.sqrt(2) * Math.sin(angle)));
@@ -241,8 +244,6 @@ public class OpeningScene extends GameScene {
             path.lineTo(x + spacing * scale * (float) (Math.sqrt(2) * Math.sin(angle)), y - spacing * scale * (float) (Math.sqrt(2) * Math.cos(angle)));
             path.close();
 
-            Paint paint = new Paint();
-            paint.setAntiAlias(true);
             paint.setColor(Color.BLACK);
             canvas.drawPath(path, paint);
         }

@@ -1,3 +1,25 @@
 <resources>
     <string name="app_name">绝对希望救援</string>
+    <string name="touch_screen">点击屏幕</string>
+    <string name="game_start">开始游戏</string>
+    <string name="game_setting">游戏设定</string>
+    <string name="game_about">关于游戏</string>
+    <string name="story_mode">故事模式</string>
+    <string name="free_mode">自由模式</string>
+    <string name="shop_mode">碎片兑换</string>
+    <string name="extra_mode">额外内容</string>
+
+    <string name="shooter">精准射击</string>
+    <string name="snake">节奏闪避</string>
+    <string name="upstairs">极限攀登</string>
+    <string name="upstairs_infinite">无限攀登</string>
+
+    <string name="easy">简单</string>
+    <string name="normal">普通</string>
+    <string name="hard">困难</string>
+    <string name="very_hard">欺负人</string>
+
+    <string name="main_vol">主音量</string>
+    <string name="bgm_vol">音乐音量</string>
+    <string name="se_vol">音效音量</string>
 </resources>

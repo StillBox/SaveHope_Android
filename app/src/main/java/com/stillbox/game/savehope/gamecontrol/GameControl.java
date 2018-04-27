@@ -1,12 +1,12 @@
-package com.stillbox.game.savehope.gameobject;
+package com.stillbox.game.savehope.gamecontrol;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 
-public abstract class GameObject {
+public abstract class GameControl {
 
-    protected float x, y, w, h;
+    float x, y, w, h;
 
     public void setX(float x) {
         this.x = x;
@@ -23,6 +23,8 @@ public abstract class GameObject {
     public void setH(float h) {
         this.h = h;
     }
+
+    public abstract void reset();
 
     public abstract void onDestroy();
 

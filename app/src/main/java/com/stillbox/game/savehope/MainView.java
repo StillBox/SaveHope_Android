@@ -1,9 +1,13 @@
 package com.stillbox.game.savehope;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -12,6 +16,10 @@ import android.view.SurfaceView;
 import com.stillbox.game.savehope.gamescene.GameScene;
 import com.stillbox.game.savehope.gamescene.MenuScene;
 import com.stillbox.game.savehope.gamescene.OpeningScene;
+import com.stillbox.game.savehope.gamescene.ShooterScene;
+import com.stillbox.game.savehope.gamesound.GameSound;
+
+import java.io.InputStream;
 
 public class MainView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 
@@ -31,6 +39,7 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
 
     private SurfaceHolder surfaceHolder;
     private Canvas canvas;
+    private Paint paint;
     private long lastUpdateTime;
 
     //Misc fields for debugging, cheating, etc...
@@ -39,6 +48,7 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
     //Fields for game
     public static final int GAME_OPENING = 0;
     public static final int GAME_MENU = 1;
+    public static final int GAME_SHOOTER = 10;
 
     private GameScene gameScene;
     private int currentScene;
@@ -52,6 +62,9 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
         resources = this.getResources();
         surfaceHolder = this.getHolder();
         surfaceHolder.addCallback(this);
+        paint = new Paint();
+        paint.setAntiAlias(true);
+        GameSound.init();
     }
 
     @Override
@@ -97,6 +110,7 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
@@ -109,14 +123,21 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
         setScene(GAME_OPENING);
     }
 
+    public void onDestroy() {
+
+        if (gameScene != null) {
+            gameScene.onDestroy();
+        }
+    }
+
     public void draw() {
 
         canvas = null;
         try {
             canvas = surfaceHolder.lockCanvas();
-            if (canvas != null) {
+            if (canvas != null && gameScene != null) {
                 canvas.drawColor(Color.BLACK);
-                gameScene.draw(canvas);
+                gameScene.draw(canvas, paint);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -128,7 +149,15 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
 
     public void update(long elapsedTime) {
 
+        GameSound.updateBGM();
+
         if (bInitScene) {
+
+            if (gameScene != null) {
+                gameScene.onDestroy();
+                gameScene = null;
+            }
+
             switch (currentScene) {
                 case GAME_OPENING:
                     gameScene = new OpeningScene();
@@ -136,7 +165,16 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
                 case GAME_MENU:
                     gameScene = new MenuScene();
                     break;
+                case GAME_SHOOTER:
+                    gameScene = new ShooterScene();
+                    break;
+                default:
+                    currentScene = GAME_OPENING;
+                    gameScene = new OpeningScene();
+                    break;
             }
+
+            gameScene.init();
             bInitScene = false;
         }
 
@@ -147,5 +185,35 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
 
         currentScene = scene;
         bInitScene = true;
+    }
+
+    public static String getString(int id) {
+        Context context = mainView.getContext();
+        return context.getString(id);
+    }
+
+    public static Bitmap getBitmap(int id) {
+
+        InputStream inputStream = resources.openRawResource(id);
+        return BitmapFactory.decodeStream(inputStream, null, null);
+    }
+
+    public static Bitmap getBitmap(int id, int width, int height) {
+
+        InputStream inputStream = resources.openRawResource(id);
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(inputStream, null, options);
+        float srcWidth = options.outWidth;
+        float srcHeight = options.outHeight;
+        int inSampleSize = 1;
+
+        if (srcWidth > width || srcHeight > height)
+            inSampleSize = Math.min(Math.round(srcWidth / width), Math.round(srcHeight / height));
+
+        options.inJustDecodeBounds = false;
+        options.inSampleSize = inSampleSize;
+
+        return BitmapFactory.decodeStream(inputStream, null, options);
     }
 }

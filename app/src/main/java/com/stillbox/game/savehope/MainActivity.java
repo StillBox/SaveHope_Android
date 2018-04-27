@@ -12,7 +12,6 @@ public class MainActivity extends Activity {
     private static final int SCREEN_ORIENTATION = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 
     @Override
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -22,5 +21,11 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setRequestedOrientation(SCREEN_ORIENTATION);
         setContentView(new MainView(this));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        MainView.mainView.onDestroy();
     }
 }

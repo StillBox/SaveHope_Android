@@ -1,6 +1,8 @@
-package com.stillbox.game.savehope;
+package com.stillbox.game.savehope.gamedata;
 
 import android.util.SparseArray;
+
+import com.stillbox.game.savehope.R;
 
 import java.util.ArrayList;
 
@@ -61,17 +63,24 @@ public class CharaData {
         ARR_CHARA_ID = new ArrayList<>();
         ARR_PLAYABLE_CHARA_ID = new ArrayList<>();
 
-        for (int id = IDC_NAEGI; id <= IDC_ENOSHIMA; id++) {
+        ARR_PLAYABLE_CHARA_ID.add(IDC_NAEGI);
+        ARR_PLAYABLE_CHARA_ID.add(IDC_HINATA);
+        ARR_PLAYABLE_CHARA_ID.add(IDC_SAIHARA);
+
+        ARR_CHARA_ID.add(IDC_NAEGI);
+        for (int id = IDC_NAEGI + 1; id <= IDC_ENOSHIMA; id++) {
             ARR_CHARA_ID.add(id);
             ARR_PLAYABLE_CHARA_ID.add(id);
         }
 
-        for (int id = IDC_HINATA; id <= IDC_PEKOYAMA; id++) {
+        ARR_CHARA_ID.add(IDC_HINATA);
+        for (int id = IDC_HINATA + 1; id <= IDC_PEKOYAMA; id++) {
             ARR_CHARA_ID.add(id);
             ARR_PLAYABLE_CHARA_ID.add(id);
         }
 
-        for (int id = IDC_SAIHARA; id <= IDC_OMA; id++) {
+        ARR_CHARA_ID.add(IDC_SAIHARA);
+        for (int id = IDC_SAIHARA + 1; id <= IDC_OMA; id++) {
             ARR_CHARA_ID.add(id);
             ARR_PLAYABLE_CHARA_ID.add(id);
         }

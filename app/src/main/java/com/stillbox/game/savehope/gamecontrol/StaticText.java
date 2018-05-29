@@ -5,7 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 
-public class TextBox extends GameControl {
+public class StaticText extends GameControl {
 
     private String text;
     private int textSize;
@@ -14,7 +14,7 @@ public class TextBox extends GameControl {
 
     private float text_x, text_y;
 
-    public TextBox(String text, float x, float y, float w, float h) {
+    public StaticText(String text, float x, float y, float w, float h) {
 
         this.text = text;
         setX(x);
@@ -46,7 +46,7 @@ public class TextBox extends GameControl {
     }
 
     @Override
-    public void update(long elapsedTime) {
+    public void update(int elapsedTime) {
 
     }
 

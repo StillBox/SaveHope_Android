@@ -8,11 +8,11 @@ import com.stillbox.game.savehope.MainView;
 
 public abstract class GameScene {
 
-    protected static float screen_w;
-    protected static float screen_h;
-    protected static float rate_x;
-    protected static float rate_y;
-    protected static float rate;
+    static float screen_w;
+    static float screen_h;
+    static float rate_x;
+    static float rate_y;
+    static float rate;
 
     public GameScene() {
 
@@ -29,7 +29,7 @@ public abstract class GameScene {
 
     public abstract void draw(Canvas canvas, Paint paint);
 
-    public abstract void update(long elapsedTime);
+    public abstract void update(int elapsedTime);
 
     public abstract void onTouchEvent(MotionEvent event);
 }

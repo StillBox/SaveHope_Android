@@ -6,15 +6,13 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.NinePatch;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
 import android.graphics.RectF;
-import android.media.MediaPlayer;
 import android.util.SparseArray;
 import android.view.MotionEvent;
 
-import com.stillbox.game.savehope.CharaData;
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
+import com.stillbox.game.savehope.gamedata.CharaData;
 import com.stillbox.game.savehope.gamemenu.AboutMenu;
 import com.stillbox.game.savehope.gamemenu.FreeMenu;
 import com.stillbox.game.savehope.gamemenu.GameMenu;
@@ -22,14 +20,10 @@ import com.stillbox.game.savehope.gamemenu.MainMenu;
 import com.stillbox.game.savehope.gamemenu.SelectMenu;
 import com.stillbox.game.savehope.gamemenu.SettingMenu;
 import com.stillbox.game.savehope.gamemenu.TitleMenu;
-import com.stillbox.game.savehope.gameobject.LoadingBox;
+import com.stillbox.game.savehope.gameobject.SpriteObject;
 import com.stillbox.game.savehope.gamesound.GameSound;
 
 public class MenuScene extends GameScene {
-
-    //Fields for Loading
-    private boolean bIsLoading;
-    private LoadingBox loadingBox;
 
     //Fields for Menu
     public static final int MENU_STATE_CENTER = 0;
@@ -61,7 +55,7 @@ public class MenuScene extends GameScene {
 
     public static final float MENU_BOX_OFFSET_Y = 200f;
     public static final float MENU_BOX_SIZE_MIN = 128f;
-    private MenuBox menuBox;
+    private MenuBorder menuBorder;
 
     private static final int CHARA_UPDATE_PERIOD = 6000;
     private SparseArray<Character> characters;
@@ -73,15 +67,11 @@ public class MenuScene extends GameScene {
 
     public MenuScene() {
 
-        bIsLoading = true;
-        loadingBox = new LoadingBox();
+        MainView.setLoadingProgress(46, 0);
     }
 
     @Override
     public void init() {
-
-        loadingBox.setMaxProgress(46);
-        loadingBox.setCurrentProgress(0);
 
         Thread thread = new Thread(() -> {
 
@@ -92,7 +82,7 @@ public class MenuScene extends GameScene {
 
             for (int charaID : CharaData.ARR_PLAYABLE_CHARA_ID) {
                 characters.put(charaID, new Character(charaID));
-                loadingBox.increaseProgress(1);                                     //Total 36
+                MainView.increaseLoadingProgress(1);                                     //Total 36
             }
 
             int firstCharaID = Math.random() < 0.8 ? CharaData.IDC_HINATA :
@@ -104,40 +94,40 @@ public class MenuScene extends GameScene {
             charaUpdateTime = 0;
 
             title = new Title();
-            loadingBox.increaseProgress(1);
+            MainView.increaseLoadingProgress(1);
 
             logo = new Logo();
-            loadingBox.increaseProgress(1);
+            MainView.increaseLoadingProgress(1);
 
-            menuBox = new MenuBox();
-            loadingBox.increaseProgress(1);                                         //Total 3
+            menuBorder = new MenuBorder();
+            MainView.increaseLoadingProgress(1);                                         //Total 3
 
             titleMenu = new TitleMenu();
-            loadingBox.increaseProgress(1);
+            MainView.increaseLoadingProgress(1);
 
             mainMenu = new MainMenu();
-            loadingBox.increaseProgress(1);
+            MainView.increaseLoadingProgress(1);
 
             selectMenu = new SelectMenu();
-            loadingBox.increaseProgress(1);
+            MainView.increaseLoadingProgress(1);
 
             settingMenu = new SettingMenu();
-            loadingBox.increaseProgress(1);
+            MainView.increaseLoadingProgress(1);
 
             aboutMenu = new AboutMenu();
-            loadingBox.increaseProgress(1);
+            MainView.increaseLoadingProgress(1);
 
             freeMenu = new FreeMenu();
-            loadingBox.increaseProgress(1);                                         //Total 6
+            MainView.increaseLoadingProgress(1);                                         //Total 6
 
             menuState = MENU_STATE_CENTER;
             currentMenu = titleMenu;
 
             GameSound.createBGM(0, ID_BGM, true);
             GameSound.startBGM(0);
-            loadingBox.increaseProgress(1);                                         //Total 1
+            MainView.increaseLoadingProgress(1);                                         //Total 1
 
-            bIsLoading = false;
+            MainView.endLoadingProgress();
         });
 
         thread.start();
@@ -155,7 +145,7 @@ public class MenuScene extends GameScene {
 
         title.onDestroyed();
         logo.onDestroy();
-        menuBox.onDestroy();
+        menuBorder.onDestroy();
 
         for (int i = 0; i < characters.size(); i++) {
             characters.valueAt(i).onDestroy();
@@ -167,11 +157,6 @@ public class MenuScene extends GameScene {
     @Override
     public void draw(Canvas canvas, Paint paint) {
 
-        if (bIsLoading) {
-            loadingBox.draw(canvas, paint);
-            return;
-        }
-
         canvas.drawColor(Color.BLACK);
         paint.setColor(Color.WHITE);
         canvas.drawRect(0, 0, boardW, screen_h, paint);
@@ -182,20 +167,15 @@ public class MenuScene extends GameScene {
 
         title.draw(canvas, paint);
         logo.draw(canvas, paint);
-        menuBox.draw(canvas);
+        menuBorder.draw(canvas);
 
-        if (menuBox.isReady()) {
+        if (menuBorder.isReady()) {
             currentMenu.draw(canvas, paint);
         }
     }
 
     @Override
-    public void update(long elapsedTime) {
-
-        if (bIsLoading) {
-            loadingBox.update(elapsedTime);
-            return;
-        }
+    public void update(int elapsedTime) {
 
         if (menuState == MENU_STATE_CENTER) {
             charaUpdateTime += elapsedTime;
@@ -224,14 +204,14 @@ public class MenuScene extends GameScene {
             setMenu(GameMenu.getCurrentMenuID());
 
         if (currentMenu.getRequiredState() != menuState) {
-            if (menuBox.isMovable()) {
+            if (menuBorder.isMovable()) {
                 if (currentMenu.getRequiredState() == MENU_STATE_SIDE) {
                     title.setShrink(true);
                     boardW += MENU_MOVE_RATE * rate * elapsedTime;
                     if (boardW >= screen_w - MENU_SIDE_SIZE * rate) {
                         boardW = screen_w - MENU_SIDE_SIZE * rate;
                         menuState = currentMenu.getRequiredState();
-                        menuBox.setMovable(false);
+                        menuBorder.setMovable(false);
                     }
                 } else if (currentMenu.getRequiredState() == MENU_STATE_CENTER) {
                     title.setShrink(false);
@@ -239,7 +219,7 @@ public class MenuScene extends GameScene {
                     if (boardW <= screen_w / 2) {
                         boardW = screen_w / 2;
                         menuState = currentMenu.getRequiredState();
-                        menuBox.setMovable(false);
+                        menuBorder.setMovable(false);
                     }
                 }
             }
@@ -247,9 +227,9 @@ public class MenuScene extends GameScene {
 
         title.update(elapsedTime);
         logo.update();
-        menuBox.update(elapsedTime);
+        menuBorder.update(elapsedTime);
 
-        if (menuBox.isReady()) {
+        if (menuBorder.isReady()) {
             currentMenu.update(elapsedTime);
         }
     }
@@ -257,10 +237,7 @@ public class MenuScene extends GameScene {
     @Override
     public void onTouchEvent(MotionEvent event) {
 
-        if (bIsLoading)
-            return;
-
-        if (menuBox.isReady()) {
+        if (menuBorder.isReady()) {
             currentMenu.onTouchEvent(event);
         }
     }
@@ -269,9 +246,9 @@ public class MenuScene extends GameScene {
 
         if (currentMenu.menuID == GameMenu.MENU_SETTING || currentMenu.menuID == GameMenu.MENU_ABOUT ||
                 menuID == GameMenu.MENU_SETTING || menuID == GameMenu.MENU_ABOUT)
-            menuBox.resize(true, true);
+            menuBorder.resize(true, true);
         else
-            menuBox.resize(false, true);
+            menuBorder.resize(false, true);
 
         switch (menuID) {
 
@@ -366,7 +343,7 @@ public class MenuScene extends GameScene {
             }
         }
 
-        void update(long elapsedTime) {
+        void update(int elapsedTime) {
 
             if (bShrink) {
                 if (scale > 0f) {
@@ -438,7 +415,7 @@ public class MenuScene extends GameScene {
         }
     }
 
-    private class MenuBox {
+    private class MenuBorder {
 
         private float scale;
         private float x, y, w, h;
@@ -449,7 +426,7 @@ public class MenuScene extends GameScene {
         private NinePatch npMenu;
         private static final float ZOOM_RATE = 2f;
 
-        MenuBox() {
+        MenuBorder() {
 
             x = boardW;
             y = screen_h / 2 + MENU_BOX_OFFSET_Y * rate;
@@ -484,7 +461,7 @@ public class MenuScene extends GameScene {
             canvas.restore();
         }
 
-        void update(long elapsedTime) {
+        void update(int elapsedTime) {
 
             x = boardW;
             if (bResizeY) {
@@ -542,22 +519,22 @@ public class MenuScene extends GameScene {
         }
     }
 
-    private class Character {
+    private class Character extends SpriteObject {
 
         private static final float CHARA_U = 0.6f;
         private static final float CHARA_V = 0.9f;
 
-        private static final int RIGHT_STAY = 0;
-        private static final int RIGHT_STEP = 1;
+        private static final int SPRITE_RIGHT_STAY = 0;
+        private static final int SPRITE_RIGHT_STEP = 1;
+
+        private static final int STATE_RIGHT_MOVE = 0;
+        private static final int STATE_RIGHT_JUMP = 1;
+
+        private static final int GAP_TIME = 160;
 
         private int charaID;
-        private float x, y;
-        private float w, h;
-        private int updateTime;
-        private int currentSprite;
         private boolean bIsMovable;
         private boolean bIsActive;
-        private SparseArray<Bitmap> sprites;
 
         Character(int charaID) {
 
@@ -565,73 +542,50 @@ public class MenuScene extends GameScene {
             x = (screen_w / 2 - TITLE_OFFSET_X * rate) / 2;
             y = 0f;
             w = 192f * rate;
-            h = 215f * rate;
-            updateTime = 0;
-            currentSprite = RIGHT_STEP;
+            h = 216f * rate;
+            offset_x = -w / 2;
+            offset_y = -h;
+            stateTime = 0;
+            currentSprite = SPRITE_RIGHT_STEP;
             bIsActive = false;
             bIsMovable = true;
 
-            sprites = new SparseArray<>();
-            Bitmap bmpRes = MainView.getBitmap(CharaData.getResID(charaID));
-            int res_w = bmpRes.getWidth() / 8;
-            int res_h = bmpRes.getHeight() * 9 / 64;
-            float scale = w / res_w;
+            loadResource(CharaData.getResID(charaID));
+            addSprite(SPRITE_RIGHT_STAY, 2f / 8f, 27f / 64f, 1f / 8f, 9f / 64f);
+            addSprite(SPRITE_RIGHT_STEP, 3f / 8f, 27f / 64f, 1f / 8f, 9f / 64f);
+            releaseResource();
 
-            Bitmap bmpSprite;
-            Bitmap bmpTemp = Bitmap.createBitmap(res_w, 2 * res_w, Bitmap.Config.ARGB_8888);
-            Canvas canvas = new Canvas(bmpTemp);
-            Paint paint = new Paint();
+            addState(STATE_RIGHT_MOVE, STATE_LOOP, GAP_TIME, SPRITE_RIGHT_STAY, SPRITE_RIGHT_STEP);
+            addState(STATE_RIGHT_JUMP, STATE_SINGLE, 0, SPRITE_RIGHT_STEP);
 
-            Matrix mat = new Matrix();
-            mat.postScale(scale, scale);
-
-            canvas.clipRect(0, 0, res_w, res_h);
-            canvas.drawBitmap(bmpRes, -2 * res_w, -3 * res_h, paint);
-            if (mat.isIdentity())
-                bmpSprite = bmpTemp.copy(Bitmap.Config.ARGB_8888, true);
-            else
-                bmpSprite = Bitmap.createBitmap(bmpTemp, 0, 0, res_w, 2 * res_w, mat, true);
-            sprites.put(RIGHT_STAY, bmpSprite);
-
-            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-            canvas.drawBitmap(bmpRes, -3 * res_w, -3 * res_h, paint);
-            if (mat.isIdentity())
-                bmpSprite = bmpTemp.copy(Bitmap.Config.ARGB_8888, true);
-            else
-                bmpSprite = Bitmap.createBitmap(bmpTemp, 0, 0, res_w, 2 * res_w, mat, true);
-            sprites.put(RIGHT_STEP, bmpSprite);
-
-            bmpTemp.recycle();
+            setState(STATE_RIGHT_JUMP);
         }
 
+        @Override
         public void onDestroy() {
 
-            for (int i = 0; i < sprites.size(); i++)
-                sprites.valueAt(i).recycle();
-            sprites.clear();
-            sprites = null;
+            super.onDestroy();
         }
 
+        @Override
         public void draw(Canvas canvas, Paint paint) {
 
             if (!bIsActive) return;
-
-            canvas.drawBitmap(sprites.get(currentSprite), x - w / 2, y - h, paint);
+            super.draw(canvas, paint);
         }
 
-        public void update(long elapsedTime) {
+        @Override
+        public void update(int elapsedTime) {
 
             if (!bIsActive) return;
 
             if (y < screen_h) {
                 y += CHARA_V * rate * elapsedTime;
-                if (y > screen_h) y = screen_h;
-            } else {
-                updateTime += elapsedTime;
-                if (updateTime >= 160) {
-                    updateTime -= 160;
-                    currentSprite = currentSprite == RIGHT_STEP ? RIGHT_STAY : RIGHT_STEP;
+                if (y >= screen_h) {
+                    y = screen_h;
+                    setState(STATE_RIGHT_MOVE);
                 }
+            } else {
                 if (bIsMovable) {
                     x += 1.5f * CHARA_U * rate * elapsedTime;
                     if (x >= screen_w + w)
@@ -643,6 +597,13 @@ public class MenuScene extends GameScene {
                     }
                 }
             }
+
+            super.update(elapsedTime);
+        }
+
+        @Override
+        public void onTouchEvent(MotionEvent event) {
+
         }
 
         int getCharaID() {
@@ -653,8 +614,7 @@ public class MenuScene extends GameScene {
 
             x = (screen_w / 2 - TITLE_OFFSET_X * rate) / 2;
             y = 0f;
-            updateTime = 0;
-            currentSprite = RIGHT_STEP;
+            setState(STATE_RIGHT_JUMP);
             bIsActive = true;
             bIsMovable = false;
         }

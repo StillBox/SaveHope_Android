@@ -1,17 +1,16 @@
 package com.stillbox.game.savehope.gamemenu;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.view.MotionEvent;
 
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
 import com.stillbox.game.savehope.gamecontrol.Button;
-import com.stillbox.game.savehope.gamecontrol.GameControl;
+import com.stillbox.game.savehope.gameenum.GameMode;
+import com.stillbox.game.savehope.gameenum.SceneTitle;
+import com.stillbox.game.savehope.gameobject.dialog.DialogBox;
+import com.stillbox.game.savehope.gameobject.dialog.LevelSelectDialog;
 import com.stillbox.game.savehope.gamescene.MenuScene;
 import com.stillbox.game.savehope.gamesound.GameSound;
-
-import java.util.ArrayList;
 
 public class FreeMenu extends GameMenu {
 
@@ -36,6 +35,10 @@ public class FreeMenu extends GameMenu {
         button_y = screen_h / 2 + MenuScene.MENU_BOX_OFFSET_Y * rate - button_spacing * 3 / 2 - button_h / 2;
         Button btnShooter = (Button) addControl(BTN_SHOOTER, new Button(MainView.getString(R.string.shooter), button_x, button_y, button_w, button_h));
         btnShooter.setTextSize(buttonTextSize);
+        btnShooter.setOnPressedListener(() -> {
+            MainView.addDialog(new LevelSelectDialog(SceneTitle.SHOOTER, GameMode.FREE));
+            reset();
+        });
 
         button_y += button_spacing;
         Button btnSnake = (Button) addControl(BTN_SNAKE, new Button(MainView.getString(R.string.snake), button_x, button_y, button_w, button_h));

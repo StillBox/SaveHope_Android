@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
+import com.stillbox.game.savehope.gameenum.SceneTitle;
 
 import java.util.ArrayList;
 
@@ -126,7 +127,7 @@ public class OpeningScene extends GameScene {
     }
 
     @Override
-    public void update(long elapsedTime) {
+    public void update(int elapsedTime) {
 
         updateTime += elapsedTime;
         meteor.update(elapsedTime);
@@ -142,7 +143,7 @@ public class OpeningScene extends GameScene {
         if (bSceneOver) {
             countDown -= elapsedTime;
             if (countDown <= 0)
-                MainView.mainView.setScene(MainView.GAME_MENU);
+                MainView.setScene(SceneTitle.MENU);
         }
     }
 
@@ -187,7 +188,7 @@ public class OpeningScene extends GameScene {
             }
         }
 
-        void update(long elapsedTime) {
+        void update(int elapsedTime) {
 
             int delta = x - 2 * y -  (int) ((meteor.getX() - 2f * meteor.getY()) / spacing);
 
@@ -248,7 +249,7 @@ public class OpeningScene extends GameScene {
             canvas.drawPath(path, paint);
         }
 
-        void update(long elapsedTime) {
+        void update(int elapsedTime) {
 
             updateTime += elapsedTime;
             angle = updateTime * 0.002f * (float) Math.PI;

@@ -17,9 +17,8 @@ public class Slider extends GameControl {
     private OnResetListener onResetListener;
     private OnValueChangeListener onValueChangeListener;
 
-    private String text;
+    private StaticText title;
     private int textSize;
-    private float slider_x, slider_y, slider_w, slider_h;
     private float gap;
 
     private int min, max;
@@ -29,28 +28,24 @@ public class Slider extends GameControl {
     private int pressTime;
     private boolean bIsLeftPressed, bIsRightPressed;
 
-    private float text_x, text_y;
     private float value_x, value_y;
 
-    public Slider(String text, float x, float y, float w, float h, float slider_x, float slider_y, float slider_w, float slider_h) {
+    public Slider(String title, float title_x, float title_y, float title_w, float title_h, float x, float y, float w, float h) {
 
-        this.text = text;
+        this.title = new StaticText(title, title_x, title_y, title_w, title_h);
+
         setX(x);
         setY(y);
         setW(w);
         setH(h);
-        this.slider_x = slider_x;
-        this.slider_y = slider_y;
-        this.slider_w = slider_w;
-        this.slider_h = slider_h;
+        setTextSize((int) title_h);
 
-        setTextSize((int) h);
         min = 0;
         max = 10;
         spacing = 1;
         count = 10;
         current = 10;
-        gap = slider_w / (3 * count - 1);
+        gap = w / (3 * count - 1);
     }
 
     @Override
@@ -66,39 +61,38 @@ public class Slider extends GameControl {
     @Override
     public void draw(Canvas canvas, Paint paint) {
 
+        title.draw(canvas, paint);
+
         paint.setColor(Color.BLACK);
         paint.setTextSize(textSize);
         paint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(text, text_x, text_y, paint);
-
-        paint.setTextAlign(Paint.Align.RIGHT);
         canvas.drawText(String.valueOf(current), value_x, value_y, paint);
 
         int currentCount = (current - min) / spacing;
         for (int i = 0; i < count; i++) {
-            RectF rectF = new RectF(slider_x + gap * 3 * i, slider_y, slider_x + gap * (3 * i + 2), slider_y + slider_h);
+            RectF rectF = new RectF(x + gap * 3 * i, y, x + gap * (3 * i + 2), y + h);
             paint.setColor(i < currentCount ? Color.BLACK : Color.GRAY);
             canvas.drawRect(rectF, paint);
         }
 
         Path path = new Path();
-        path.moveTo(slider_x - slider_h * 3 / 2, slider_y + slider_h / 2);
-        path.lineTo(slider_x - slider_h, slider_y);
-        path.lineTo(slider_x - slider_h, slider_y + slider_h);
+        path.moveTo(x - h * 3 / 2, y + h / 2);
+        path.lineTo(x - h, y);
+        path.lineTo(x - h, y + h);
         path.close();
         paint.setColor(bIsLeftPressed ? Color.GRAY : Color.BLACK);
         canvas.drawPath(path, paint);
         path.reset();
-        path.moveTo(slider_x + slider_w + slider_h * 3 / 2, slider_y + slider_h / 2);
-        path.lineTo(slider_x + slider_w + slider_h, slider_y);
-        path.lineTo(slider_x + slider_w + slider_h, slider_y + slider_h);
+        path.moveTo(x + w + h * 3 / 2, y + h / 2);
+        path.lineTo(x + w + h, y);
+        path.lineTo(x + w + h, y + h);
         path.close();
         paint.setColor(bIsRightPressed ? Color.GRAY : Color.BLACK);
         canvas.drawPath(path, paint);
     }
 
     @Override
-    public void update(long elapsedTime) {
+    public void update(int elapsedTime) {
 
         if (bIsLeftPressed) {
             pressTime += elapsedTime;
@@ -137,8 +131,12 @@ public class Slider extends GameControl {
                     add();
                 }
             } else if (checkTouchPoint(touch_x, touch_y) == 2) {
-                int touch_count = (int) ((touch_x - slider_x + gap) / slider_w * count);
-                setCurrent(touch_count * spacing);
+                int touch_count = (int) ((touch_x - x + gap) / w * count);
+                int touch_value = min + touch_count * spacing;
+                if (touch_value != current) {
+                    setCurrent(min + touch_count * spacing);
+                    GameSound.playSE(GameSound.ID_SE_SELECT);
+                }
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             bIsLeftPressed = false;
@@ -153,10 +151,8 @@ public class Slider extends GameControl {
         Paint paint = new Paint();
         paint.setTextSize(textSize);
         Paint.FontMetrics metrics = paint.getFontMetrics();
-        text_x = x + w / 2;
-        text_y = y + h / 2 - (metrics.bottom + metrics.top) / 2;
-        value_x = slider_x + slider_w + slider_h * 4;
-        value_y = slider_y + slider_h / 2 - (metrics.bottom + metrics.top) / 2;
+        value_x = x + w + h * 4;
+        value_y = y + h / 2 - (metrics.bottom + metrics.top) / 2;
     }
 
     public void setMin(int min) {
@@ -165,6 +161,7 @@ public class Slider extends GameControl {
 
     public void setMax(int max) {
         this.max = max;
+        current = max;
     }
 
     public void setRange(int min, int max) {
@@ -175,11 +172,13 @@ public class Slider extends GameControl {
     public void setSpacing(int spacing) {
         this.spacing = spacing;
         count = (max - min) / spacing;
+        gap = w / (3 * count - 1);
     }
 
     public void setCount(int count) {
         this.count = count;
         spacing = (max - min) / count;
+        gap = w / (3 * count - 1);
     }
 
     public int getCurrent() {
@@ -187,19 +186,18 @@ public class Slider extends GameControl {
     }
 
     public void setCurrent(int current) {
-        if (this.current != current) {
-            this.current = current > max ? max : current < min ? min : current;
-            if (onValueChangeListener != null) onValueChangeListener.onValueChange();
-            GameSound.playSE(GameSound.ID_SE_SELECT);
-        }
+        this.current = current > max ? max : current < min ? min : current;
+        if (onValueChangeListener != null) onValueChangeListener.onValueChange();
     }
 
     public void add() {
         setCurrent(current + spacing);
+        GameSound.playSE(GameSound.ID_SE_SELECT);
     }
 
     public void sub() {
         setCurrent(current - spacing);
+        GameSound.playSE(GameSound.ID_SE_SELECT);
     }
 
     public void setOnResetListener(OnResetListener onResetListener) {
@@ -212,12 +210,12 @@ public class Slider extends GameControl {
 
     private int checkTouchPoint(float touch_x, float touch_y) {
 
-        if (touch_y >= slider_y - slider_h / 2 && touch_y <= slider_y + slider_h * 3 / 2) {
-            if (touch_x > slider_x - 3 * slider_h && touch_x < slider_x - slider_h / 2)
+        if (touch_y >= y - h / 2 && touch_y <= y + h * 3 / 2) {
+            if (touch_x > x - 3 * h && touch_x < x - h / 2)
                 return -1;
-            if (touch_x > slider_x + slider_w + slider_h / 2 && touch_x < slider_x + slider_w + 3 * slider_h)
+            if (touch_x > x + w + h / 2 && touch_x < x + w + 3 * h)
                 return 1;
-            if (touch_x > slider_x - gap && touch_x < slider_x + slider_w + gap)
+            if (touch_x > x - gap && touch_x < x + w + gap)
                 return 2;
         }
         return 0;

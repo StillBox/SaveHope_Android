@@ -1,16 +1,13 @@
 package com.stillbox.game.savehope.gamemenu;
 
-import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
-import com.stillbox.game.savehope.gamecontrol.TextBox;
+import com.stillbox.game.savehope.gamecontrol.StaticText;
 import com.stillbox.game.savehope.gamescene.MenuScene;
 import com.stillbox.game.savehope.gamesound.GameSound;
-
-import java.util.ArrayList;
 
 public class AboutMenu extends GameMenu {
 
@@ -30,21 +27,21 @@ public class AboutMenu extends GameMenu {
         float text_h = 64 * rate;
         float text_x = getRegionLeft() + getRequiredWidth() / 2 - text_w / 2;
         float text_y = screen_h / 2 + MenuScene.MENU_BOX_OFFSET_Y * rate - text_h / 2;
-        addControl(TXT_ABOUT, new TextBox(MainView.getString(R.string.game_about), text_x, text_y, text_w, text_h));
+        addControl(TXT_ABOUT, new StaticText(MainView.getString(R.string.game_about), text_x, text_y, text_w, text_h));
 
         text_x = (screen_w - MenuScene.MENU_SIDE_SIZE * rate) / 6;
         text_w = (screen_w - MenuScene.MENU_SIDE_SIZE * rate) / 2;
         text_y = screen_h / 5;
         text_h = 48f * rate;
-        TextBox textLine1 = (TextBox) addControl(TXT_LINE1, new TextBox("本应用仅供学习交流使用", text_x, text_y, text_w, text_h));
+        StaticText textLine1 = (StaticText) addControl(TXT_LINE1, new StaticText("本应用仅供学习交流使用", text_x, text_y, text_w, text_h));
         textLine1.setTextAlign(Paint.Align.LEFT);
 
         text_y += screen_h / 5;
-        TextBox textLine2 = (TextBox) addControl(TXT_LINE2, new TextBox("非原创素材版权均归原制作组所有", text_x, text_y, text_w, text_h));
+        StaticText textLine2 = (StaticText) addControl(TXT_LINE2, new StaticText("非原创素材版权均归原制作组所有", text_x, text_y, text_w, text_h));
         textLine2.setTextAlign(Paint.Align.LEFT);
 
         text_y += screen_h / 4;
-        TextBox textLine3 = (TextBox) addControl(TXT_LINE3, new TextBox("制作者 —— 箱子", text_x, text_y, text_w, text_h));
+        StaticText textLine3 = (StaticText) addControl(TXT_LINE3, new StaticText("制作者 —— 箱子", text_x, text_y, text_w, text_h));
         textLine3.setTextAlign(Paint.Align.LEFT);
     }
 

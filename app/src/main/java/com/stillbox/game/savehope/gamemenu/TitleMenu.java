@@ -6,7 +6,7 @@ import android.view.MotionEvent;
 
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
-import com.stillbox.game.savehope.gamecontrol.TextBox;
+import com.stillbox.game.savehope.gamecontrol.StaticText;
 import com.stillbox.game.savehope.gamescene.MenuScene;
 import com.stillbox.game.savehope.gamesound.GameSound;
 
@@ -27,7 +27,7 @@ public class TitleMenu extends GameMenu {
         float button_h = 64 * rate;
         float button_x = screen_w / 2 - button_w / 2;
         float button_y = screen_h / 2 + MenuScene.MENU_BOX_OFFSET_Y * rate - button_h / 2;
-        addControl(TXT_TITLE, new TextBox(MainView.getString(R.string.touch_screen), button_x, button_y, button_w, button_h));
+        addControl(TXT_TITLE, new StaticText(MainView.getString(R.string.touch_screen), button_x, button_y, button_w, button_h));
     }
 
     public void reset() {
@@ -41,7 +41,7 @@ public class TitleMenu extends GameMenu {
             super.draw(canvas, paint);
     }
 
-    public void update(long elapsedTime) {
+    public void update(int elapsedTime) {
 
         updateTime += elapsedTime;
         if (updateTime >= PERIOD)

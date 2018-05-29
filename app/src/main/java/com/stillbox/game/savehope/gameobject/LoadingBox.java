@@ -5,26 +5,22 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 
-import com.stillbox.game.savehope.MainView;
-import com.stillbox.game.savehope.gameobject.GameObject;
-
 public class LoadingBox extends GameObject {
 
-    private int updateTime = 0;
+    private boolean bIsOn;
+    private int updateTime;
     private int maxProgress = 100;
     private int currentProgress = 0;
     private int textSize;
 
-    public LoadingBox() {
+    public LoadingBox(float x, float y, float w, float h, float textSize) {
 
-        x = 0;
-        y = 0;
-        w = MainView.mainView.getWidth();
-        h = MainView.mainView.getHeight();
-        float ratioW = w / MainView.DEST_WIDTH;
-        float ratioH = h / MainView.DEST_HEIGHT;
-        float ratio = Math.min(ratioW, ratioH);
-        textSize = Math.round(48f * ratio);
+        bIsOn = false;
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.textSize = Math.round(textSize);
     }
 
     @Override
@@ -35,11 +31,13 @@ public class LoadingBox extends GameObject {
     @Override
     public void draw(Canvas canvas, Paint paint) {
 
+        if (!bIsOn) return;
+
         int maxWidth = (int) paint.measureText("Loading...");
         int count = updateTime / 1000;
-        String text = "Loading.";
+        StringBuilder text = new StringBuilder("Loading.");
         while (count > 0) {
-            text += ".";
+            text.append(".");
             count--;
         }
 
@@ -49,13 +47,15 @@ public class LoadingBox extends GameObject {
         paint.setColor(Color.WHITE);
         paint.setTextSize(textSize);
         paint.setTextAlign(Paint.Align.LEFT);
-        canvas.drawText(text, x + w - maxWidth, y + h - textSize / 2, paint);
+        canvas.drawText(text.toString(), x + w - maxWidth, y + h - textSize / 2, paint);
         paint.setTextAlign(Paint.Align.CENTER);
         canvas.drawText(currentProgress + " / " + maxProgress, x + w / 2, y + h / 2 + textSize / 2, paint);
     }
 
     @Override
-    public void update(long elapsedTime) {
+    public void update(int elapsedTime) {
+
+        if (!bIsOn) return;
 
         updateTime += elapsedTime;
         if (updateTime >= 3000) {
@@ -66,6 +66,19 @@ public class LoadingBox extends GameObject {
     @Override
     public void onTouchEvent(MotionEvent event) {
 
+    }
+
+    public boolean isOn() {
+        return bIsOn;
+    }
+
+    public void start() {
+        bIsOn = true;
+        updateTime = 0;
+    }
+
+    public void end() {
+        bIsOn = false;
     }
 
     public int getMaxProgress() {

@@ -30,7 +30,7 @@ public abstract class GameControl {
 
     public abstract void draw(Canvas canvas, Paint paint);
 
-    public abstract void update(long elapsedTime);
+    public abstract void update(int elapsedTime);
 
     public abstract void onTouchEvent(MotionEvent event);
 }

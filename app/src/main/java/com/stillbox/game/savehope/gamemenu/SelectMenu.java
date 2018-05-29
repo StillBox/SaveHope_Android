@@ -8,6 +8,11 @@ import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
 import com.stillbox.game.savehope.gamecontrol.Button;
 import com.stillbox.game.savehope.gamecontrol.GameControl;
+import com.stillbox.game.savehope.gamedata.SaveData;
+import com.stillbox.game.savehope.gameenum.SceneTitle;
+import com.stillbox.game.savehope.gameenum.StoryChapter;
+import com.stillbox.game.savehope.gameobject.dialog.ContinueDialog;
+import com.stillbox.game.savehope.gameobject.dialog.LevelSelectDialog;
 import com.stillbox.game.savehope.gamescene.MenuScene;
 import com.stillbox.game.savehope.gamesound.GameSound;
 
@@ -36,6 +41,14 @@ public class SelectMenu extends GameMenu {
         button_y = screen_h / 2 + MenuScene.MENU_BOX_OFFSET_Y * rate - button_spacing * 3 / 2 - button_h / 2;
         Button btnStory = (Button) addControl(BTN_STORY, new Button(MainView.getString(R.string.story_mode), button_x, button_y, button_w, button_h));
         btnStory.setTextSize(buttonTextSize);
+        btnStory.setOnPressedListener(() -> {
+            if (SaveData.currentChapter == StoryChapter.INTRO) {
+                MainView.addDialog(new LevelSelectDialog(StoryChapter.INTRO));
+            } else {
+                MainView.addDialog(new ContinueDialog());
+            }
+            reset();
+        });
 
         button_y += button_spacing;
         Button btnFree = (Button) addControl(BTN_FREE, new Button(MainView.getString(R.string.free_mode), button_x, button_y, button_w, button_h));
@@ -48,10 +61,18 @@ public class SelectMenu extends GameMenu {
         button_y += button_spacing;
         Button btnShop = (Button) addControl(BTN_SHOP, new Button(MainView.getString(R.string.shop_mode), button_x, button_y, button_w, button_h));
         btnShop.setTextSize(buttonTextSize);
+        btnShop.setOnPressedListener(() -> {
+            MainView.setSceneCurtain(127, 255, 500, () -> MainView.setScene(SceneTitle.SHOP));
+            reset();
+        });
 
         button_y += button_spacing;
         Button btnExtra = (Button) addControl(BTN_EXTRA, new Button(MainView.getString(R.string.extra_mode), button_x, button_y, button_w, button_h));
         btnExtra.setTextSize(buttonTextSize);
+        btnExtra.setOnPressedListener(() -> {
+            MainView.setSceneCurtain(127, 255, 500, () -> MainView.setScene(SceneTitle.EXTRA));
+            reset();
+        });
     }
 
     public void onTouchEvent(MotionEvent event) {

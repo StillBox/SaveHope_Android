@@ -3,14 +3,12 @@ package com.stillbox.game.savehope.gamemenu;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.SparseArray;
-import android.view.Menu;
 import android.view.MotionEvent;
 
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.gamecontrol.GameControl;
+import com.stillbox.game.savehope.gamescene.GameScene;
 import com.stillbox.game.savehope.gamescene.MenuScene;
-
-import java.util.ArrayList;
 
 public abstract class GameMenu {
 
@@ -20,6 +18,10 @@ public abstract class GameMenu {
     public static final int MENU_SETTING = 20;
     public static final int MENU_ABOUT = 30;
     public static final int MENU_FREE = 100;
+    public static final int MENU_PAUSE = 1000;
+    public static final int MENU_SETTING_SHOOTER = 1100;
+    public static final int MENU_SETTING_SNAKE = 1200;
+    public static final int MENU_SETTING_UPSTAIRS = 1300;
 
     private static int currentMenuID;
 
@@ -30,6 +32,7 @@ public abstract class GameMenu {
     static float rate;
 
     public int menuID;
+    private GameScene parentScene;
     private float requiredWidth = 256f;
     private float requiredHeight = 256f;
     private float regionLeft;
@@ -65,7 +68,7 @@ public abstract class GameMenu {
             controls.valueAt(i).draw(canvas, paint);
     }
 
-    public void update(long elapsedTime) {
+    public void update(int elapsedTime) {
         for (int i = 0; i < controls.size(); i++)
             controls.valueAt(i).update(elapsedTime);
     }
@@ -75,12 +78,12 @@ public abstract class GameMenu {
             controls.valueAt(i).onTouchEvent(event);
     }
 
-    public GameControl addControl(int id, GameControl control) {
+    public final GameControl addControl(int id, GameControl control) {
         controls.put(id, control);
         return control;
     }
 
-    public GameControl getControl(int id) {
+    public final GameControl getControl(int id) {
         return controls.get(id);
     }
 
@@ -92,19 +95,23 @@ public abstract class GameMenu {
         GameMenu.currentMenuID = currentMenuID;
     }
 
-    public int getRequiredState() {
+    public GameScene getParentScene() {
+        return parentScene;
+    }
+
+    public final int getRequiredState() {
         return requiredState;
     }
 
-    public void setRequiredState(int requiredState) {
+    public final void setRequiredState(int requiredState) {
         this.requiredState = requiredState;
     }
 
-    public float getRequiredWidth() {
+    public final float getRequiredWidth() {
         return requiredWidth;
     }
 
-    public void setRequiredWidth(float requiredWidth) {
+    public final void setRequiredWidth(float requiredWidth) {
         this.requiredWidth = requiredWidth;
         if (requiredState == MenuScene.MENU_STATE_CENTER)
             regionLeft = screen_w / 2 - requiredWidth / 2;
@@ -113,29 +120,29 @@ public abstract class GameMenu {
         regionRight = regionLeft + requiredWidth;
     }
 
-    public float getRequiredHeight() {
+    public final float getRequiredHeight() {
         return requiredHeight;
     }
 
-    public void setRequiredHeight(float requiredHeight) {
+    public final void setRequiredHeight(float requiredHeight) {
         this.requiredHeight = requiredHeight;
         regionTop = screen_h / 2 + MenuScene.MENU_BOX_OFFSET_Y * rate - requiredHeight / 2;
         regionBottom = regionTop + requiredHeight;
     }
 
-    public float getRegionLeft() {
+    public final float getRegionLeft() {
         return regionLeft;
     }
 
-    public float getRegionTop() {
+    public final float getRegionTop() {
         return regionTop;
     }
 
-    public float getRegionRight() {
+    public final float getRegionRight() {
         return regionRight;
     }
 
-    public float getRegionBottom() {
+    public final float getRegionBottom() {
         return regionBottom;
     }
 }

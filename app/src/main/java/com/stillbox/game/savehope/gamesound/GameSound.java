@@ -8,6 +8,7 @@ import android.util.SparseIntArray;
 
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
+import com.stillbox.game.savehope.gamedata.GameSettings;
 
 public class GameSound {
 
@@ -31,6 +32,9 @@ public class GameSound {
     private static SparseIntArray uises;
 
     public static void init() {
+        mainVolume = (float) GameSettings.mainVolume / 100f;
+        bgmVolume = (float) GameSettings.bgmVolume / 100f;
+        seVolume = (float) GameSettings.seVolume / 100f;
         bgms = new SparseArray<>();
         ses = new SparseIntArray();
         uises = new SparseIntArray();
@@ -68,6 +72,18 @@ public class GameSound {
     public static void stopBGM() {
         for (int i = 0; i < bgms.size(); i++)
             bgms.valueAt(i).stop();
+    }
+
+    public static int getDuration(int bgmid) {
+        return bgms.get(bgmid).getDuration();
+    }
+
+    public static int getCurrentPosition() {
+        return bgms.get(currentBgm).getCurrentPosition();
+    }
+
+    public static void seekTo(int msec) {
+        bgms.get(currentBgm).seekTo(msec);
     }
 
     public static void releaseBGM() {
@@ -175,6 +191,12 @@ public class GameSound {
 
         public abstract void stop();
 
+        public abstract void seekTo(int msec);
+
+        public abstract int getDuration();
+
+        public abstract int getCurrentPosition();
+
         public abstract void release();
 
         public abstract void update();
@@ -188,11 +210,13 @@ public class GameSound {
     static class SingleBGM extends BGM {
 
         int resid;
+        int duration;
         MediaPlayer firstPlayer;
 
         public SingleBGM(int resid) {
             this.resid = resid;
             firstPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid);
+            duration = firstPlayer.getDuration();
             setVolume(1f);
         }
 
@@ -209,6 +233,21 @@ public class GameSound {
         @Override
         public void stop() {
             firstPlayer.stop();
+        }
+
+        @Override
+        public void seekTo(int msec) {
+            firstPlayer.seekTo(msec);
+        }
+
+        @Override
+        public int getDuration() {
+            return duration;
+        }
+
+        @Override
+        public int getCurrentPosition() {
+            return firstPlayer.getCurrentPosition();
         }
 
         @Override
@@ -231,6 +270,7 @@ public class GameSound {
     static class LoopBGM extends BGM {
 
         int resid;
+        int duration;
         int currentPlayer = 0;
         MediaPlayer firstPlayer, secondPlayer;
         MediaPlayer.OnCompletionListener firstListener, secondListener;
@@ -238,13 +278,21 @@ public class GameSound {
 
         public LoopBGM(int resid) {
             this.resid = resid;
-            firstListener = mp -> bIsFirstOver = true;
-            secondListener = mp -> bIsSecondOver = true;
+            firstListener = mp -> {
+                bIsFirstOver = true;
+                currentPlayer = 2;
+            };
+            secondListener = mp -> {
+                bIsSecondOver = true;
+                currentPlayer = 1;
+            };
+
             firstPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid);
             firstPlayer.setOnCompletionListener(firstListener);
             secondPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid);
             secondPlayer.setOnCompletionListener(secondListener);
             firstPlayer.setNextMediaPlayer(secondPlayer);
+            duration = firstPlayer.getDuration();
             setVolume(1f);
         }
 
@@ -284,6 +332,36 @@ public class GameSound {
                 firstPlayer.stop();
             if (secondPlayer.isPlaying())
                 secondPlayer.stop();
+        }
+
+        @Override
+        public void seekTo(int msec) {
+            switch (currentPlayer) {
+                case 0:
+                case 1:
+                    firstPlayer.seekTo(msec);
+                    break;
+                case 2:
+                    secondPlayer.seekTo(msec);
+                    break;
+            }
+        }
+
+        @Override
+        public int getDuration() {
+            return duration;
+        }
+
+        @Override
+        public int getCurrentPosition() {
+            switch (currentPlayer) {
+                case 1:
+                    return firstPlayer.getCurrentPosition();
+                case 2:
+                    return secondPlayer.getCurrentPosition();
+                default:
+                    return 0;
+            }
         }
 
         @Override
@@ -330,109 +408,43 @@ public class GameSound {
     static class IntroSingleBGM extends BGM {
 
         int resid_intro, resid;
+        int duration_intro, duration;
         int currentPlayer = 0;
-        MediaPlayer firstPlayer, secondPlayer;
+        MediaPlayer introPlayer, firstPlayer;
+        MediaPlayer.OnCompletionListener introListener, firstListener;
+        boolean bIsIntroOver = false, bIsFirstOver = false;
 
         public IntroSingleBGM(int resid_intro, int resid) {
             this.resid_intro = resid_intro;
             this.resid = resid;
-            firstPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid_intro);
-            secondPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid);
-            firstPlayer.setNextMediaPlayer(secondPlayer);
-            setVolume(1f);
-        }
-
-        @Override
-        public void start() {
-            switch (currentPlayer) {
-                case 0:
-                    firstPlayer.start();
-                    currentPlayer = 1;
-                    break;
-                case 1:
-                    firstPlayer.start();
-                    break;
-                case 2:
-                    secondPlayer.start();
-                    break;
-            }
-        }
-
-        @Override
-        public void pause() {
-            switch (currentPlayer) {
-                case 0:
-                    break;
-                case 1:
-                    firstPlayer.pause();
-                    break;
-                case 2:
-                    secondPlayer.pause();
-                    break;
-            }
-        }
-
-        @Override
-        public void stop() {
-            if (firstPlayer.isPlaying())
-                firstPlayer.stop();
-            if (secondPlayer.isPlaying())
-                secondPlayer.stop();
-        }
-
-        @Override
-        public void release() {
-            stop();
-            firstPlayer.release();
-            secondPlayer.release();
-        }
-
-        @Override
-        public void update() {
-
-        }
-
-        @Override
-        public void setVolume(float volume) {
-            super.setVolume(volume);
-            firstPlayer.setVolume(actVolume, actVolume);
-            secondPlayer.setVolume(actVolume, actVolume);
-        }
-    }
-
-    static class IntroLoopBGM extends BGM {
-
-        int resid, resid_intro;
-        int currentPlayer = 0;
-        MediaPlayer firstPlayer, secondPlayer;
-        MediaPlayer.OnCompletionListener firstListener, secondListener;
-        boolean bIsFirstOver = false, bIsSecondOver = false;
-
-        public IntroLoopBGM(int resid_intro, int resid) {
-            this.resid_intro = resid_intro;
-            this.resid = resid;
-            firstListener = mp -> bIsFirstOver = true;
-            secondListener = mp -> bIsSecondOver = true;
-            firstPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid_intro);
+            introListener = mp -> {
+                bIsIntroOver = true;
+                currentPlayer = 1;
+            };
+            firstListener = mp -> {
+                bIsFirstOver = true;
+                currentPlayer = 0;
+            };
+            introPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid_intro);
+            introPlayer.setOnCompletionListener(introListener);
+            firstPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid);
             firstPlayer.setOnCompletionListener(firstListener);
-            secondPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid);
-            secondPlayer.setOnCompletionListener(secondListener);
-            firstPlayer.setNextMediaPlayer(secondPlayer);
+            introPlayer.setNextMediaPlayer(firstPlayer);
+            duration_intro = introPlayer.getDuration();
+            duration = firstPlayer.getDuration();
             setVolume(1f);
         }
 
         @Override
         public void start() {
             switch (currentPlayer) {
+                case -1:
                 case 0:
-                    firstPlayer.start();
-                    currentPlayer = 1;
+                    introPlayer.start();
+                    currentPlayer = -1;
                     break;
                 case 1:
                     firstPlayer.start();
-                    break;
-                case 2:
-                    secondPlayer.start();
                     break;
             }
         }
@@ -440,34 +452,92 @@ public class GameSound {
         @Override
         public void pause() {
             switch (currentPlayer) {
-                case 0:
+                case -1:
+                    introPlayer.pause();
                     break;
                 case 1:
                     firstPlayer.pause();
-                    break;
-                case 2:
-                    secondPlayer.pause();
                     break;
             }
         }
 
         @Override
         public void stop() {
+            if (introPlayer.isPlaying())
+                introPlayer.stop();
             if (firstPlayer.isPlaying())
                 firstPlayer.stop();
-            if (secondPlayer.isPlaying())
-                secondPlayer.stop();
+        }
+
+        @Override
+        public void seekTo(int msec) {
+            switch (currentPlayer) {
+                case -1:
+                    if (msec < duration_intro) {
+                        introPlayer.seekTo(msec);
+                    } else {
+                        bIsIntroOver = true;
+                        firstPlayer.seekTo(msec - duration_intro);
+                        currentPlayer = 1;
+                    }
+                    break;
+                case 0:
+                    if (msec < duration_intro) {
+                        introPlayer.seekTo(msec);
+                        currentPlayer = -1;
+                    } else {
+                        firstPlayer.seekTo(msec - duration_intro);
+                        currentPlayer = 1;
+                    }
+                    break;
+                case 1:
+                    if (msec < duration_intro) {
+                        bIsFirstOver = true;
+                        introPlayer.seekTo(msec);
+                        currentPlayer = -1;
+                    } else {
+                        firstPlayer.seekTo(msec - duration_intro);
+                    }
+                    break;
+            }
+        }
+
+        @Override
+        public int getDuration() {
+            return duration_intro + duration;
+        }
+
+        @Override
+        public int getCurrentPosition() {
+            switch (currentPlayer) {
+                case -1:
+                    return introPlayer.getCurrentPosition();
+                case 1:
+                    return duration_intro + firstPlayer.getCurrentPosition();
+                default:
+                    return 0;
+            }
         }
 
         @Override
         public void release() {
             stop();
+            introPlayer.release();
             firstPlayer.release();
-            secondPlayer.release();
         }
 
         @Override
         public void update() {
+            if (bIsIntroOver) {
+                bIsIntroOver = false;
+                Thread thread = new Thread(() -> {
+                    introPlayer.release();
+                    introPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid_intro);
+                    introPlayer.setOnCompletionListener(introListener);
+                    introPlayer.setVolume(actVolume, actVolume);
+                });
+                thread.start();
+            }
             if (bIsFirstOver) {
                 bIsFirstOver = false;
                 Thread thread = new Thread(() -> {
@@ -475,6 +545,186 @@ public class GameSound {
                     firstPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid);
                     firstPlayer.setOnCompletionListener(firstListener);
                     firstPlayer.setVolume(actVolume, actVolume);
+                    introPlayer.setNextMediaPlayer(firstPlayer);
+                });
+                thread.start();
+            }
+        }
+
+        @Override
+        public void setVolume(float volume) {
+            super.setVolume(volume);
+            introPlayer.setVolume(actVolume, actVolume);
+            firstPlayer.setVolume(actVolume, actVolume);
+        }
+    }
+
+    static class IntroLoopBGM extends BGM {
+
+        int resid, resid_intro;
+        int duration, duration_intro;
+        int currentPlayer = 0;
+        MediaPlayer introPlayer, firstPlayer, secondPlayer;
+        MediaPlayer.OnCompletionListener introListener, firstListener, secondListener;
+        boolean bIsIntroOver = false, bIsFirstOver = false, bIsSecondOver = false;
+
+        public IntroLoopBGM(int resid_intro, int resid) {
+            this.resid_intro = resid_intro;
+            this.resid = resid;
+            introListener = mp -> {
+                bIsIntroOver = true;
+                currentPlayer = 1;
+            };
+            firstListener = mp -> {
+                bIsFirstOver = true;
+                currentPlayer = 2;
+            };
+            secondListener = mp -> {
+                bIsSecondOver = true;
+                currentPlayer = 1;
+            };
+            introPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid_intro);
+            introPlayer.setOnCompletionListener(introListener);
+            firstPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid);
+            firstPlayer.setOnCompletionListener(firstListener);
+            secondPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid);
+            secondPlayer.setOnCompletionListener(secondListener);
+            introPlayer.setNextMediaPlayer(firstPlayer);
+            firstPlayer.setNextMediaPlayer(secondPlayer);
+            setVolume(1f);
+        }
+
+        @Override
+        public void start() {
+            switch (currentPlayer) {
+                case -1:
+                case 0:
+                    introPlayer.start();
+                    currentPlayer = -1;
+                    break;
+                case 1:
+                    firstPlayer.start();
+                    break;
+                case 2:
+                    secondPlayer.start();
+                    break;
+            }
+        }
+
+        @Override
+        public void pause() {
+            switch (currentPlayer) {
+                case -1:
+                    introPlayer.pause();
+                    break;
+                case 1:
+                    firstPlayer.pause();
+                    break;
+                case 2:
+                    secondPlayer.pause();
+                    break;
+            }
+        }
+
+        @Override
+        public void stop() {
+            if (introPlayer.isPlaying())
+                introPlayer.stop();
+            if (firstPlayer.isPlaying())
+                firstPlayer.stop();
+            if (secondPlayer.isPlaying())
+                secondPlayer.stop();
+        }
+
+        @Override
+        public void seekTo(int msec) {
+            switch (currentPlayer) {
+                case -1:
+                    if (msec < duration_intro) {
+                        introPlayer.seekTo(msec);
+                    } else {
+                        bIsIntroOver = true;
+                        firstPlayer.seekTo(msec - duration_intro);
+                        currentPlayer = 1;
+                    }
+                    break;
+                case 0:
+                    if (msec < duration_intro) {
+                        introPlayer.seekTo(msec);
+                        currentPlayer = -1;
+                    } else {
+                        firstPlayer.seekTo(msec - duration_intro);
+                        currentPlayer = 1;
+                    }
+                    break;
+                case 1:
+                    if (msec < duration_intro) {
+                        bIsFirstOver = true;
+                        introPlayer.seekTo(msec);
+                        currentPlayer = -1;
+                    } else {
+                        firstPlayer.seekTo(msec - duration_intro);
+                    }
+                    break;
+                case 2:
+                    if (msec < duration_intro) {
+                        bIsSecondOver = true;
+                        introPlayer.seekTo(msec);
+                        currentPlayer = -1;
+                    } else {
+                        secondPlayer.seekTo(msec - duration_intro);
+                    }
+                    break;
+            }
+        }
+
+        @Override
+        public int getDuration() {
+            return duration_intro + duration;
+        }
+
+        @Override
+        public int getCurrentPosition() {
+            switch (currentPlayer) {
+                case -1:
+                    return introPlayer.getCurrentPosition();
+                case 1:
+                    return duration_intro + firstPlayer.getCurrentPosition();
+                case 2:
+                    return duration_intro + secondPlayer.getCurrentPosition();
+                default:
+                    return 0;
+            }
+        }
+
+        @Override
+        public void release() {
+            stop();
+            introPlayer.release();
+            firstPlayer.release();
+            secondPlayer.release();
+        }
+
+        @Override
+        public void update() {
+            if (bIsIntroOver) {
+                bIsIntroOver = false;
+                Thread thread = new Thread(() -> {
+                    introPlayer.release();
+                    introPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid_intro);
+                    introPlayer.setOnCompletionListener(introListener);
+                    introPlayer.setVolume(actVolume, actVolume);
+                });
+                thread.start();
+            }
+            if (bIsFirstOver) {
+                bIsFirstOver = false;
+                Thread thread = new Thread(() -> {
+                    firstPlayer.release();
+                    firstPlayer = MediaPlayer.create(MainView.mainView.getContext(), resid);
+                    firstPlayer.setOnCompletionListener(firstListener);
+                    firstPlayer.setVolume(actVolume, actVolume);
+                    introPlayer.setNextMediaPlayer(firstPlayer);
                     secondPlayer.setNextMediaPlayer(firstPlayer);
                 });
                 thread.start();
@@ -495,6 +745,7 @@ public class GameSound {
         @Override
         public void setVolume(float volume) {
             super.setVolume(volume);
+            introPlayer.setVolume(actVolume, actVolume);
             firstPlayer.setVolume(actVolume, actVolume);
             secondPlayer.setVolume(actVolume, actVolume);
         }

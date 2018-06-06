@@ -33,4 +33,10 @@ public abstract class GameControl {
     public abstract void update(int elapsedTime);
 
     public abstract void onTouchEvent(MotionEvent event);
+
+    public static void release(GameControl control) {
+        if (control != null) {
+            control.onDestroy();
+        }
+    }
 }

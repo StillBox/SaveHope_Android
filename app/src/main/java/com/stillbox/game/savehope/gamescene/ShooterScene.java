@@ -8,21 +8,20 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 
-import com.stillbox.game.savehope.gamedata.CharaData;
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
 import com.stillbox.game.savehope.gamecontrol.Button;
 import com.stillbox.game.savehope.gamecontrol.TextButton;
+import com.stillbox.game.savehope.gamedata.CharaData;
 import com.stillbox.game.savehope.gamedata.GameSettings;
 import com.stillbox.game.savehope.gameenum.GameLevel;
 import com.stillbox.game.savehope.gameenum.GameMode;
-import com.stillbox.game.savehope.gameenum.SceneTitle;
 import com.stillbox.game.savehope.gamemenu.GameMenu;
 import com.stillbox.game.savehope.gamemenu.PauseMenu;
 import com.stillbox.game.savehope.gamemenu.ShooterSettingMenu;
-import com.stillbox.game.savehope.gameobject.LoadingBox;
 import com.stillbox.game.savehope.gameobject.SingleSpriteObject;
 import com.stillbox.game.savehope.gameobject.SpriteObject;
+import com.stillbox.game.savehope.gameobject.TextBox;
 import com.stillbox.game.savehope.gamesound.GameSound;
 
 import java.util.ArrayList;
@@ -77,7 +76,7 @@ public class ShooterScene extends GameScene {
     private static float beatRate;
     private static float actSPB;
 
-    //Fields for pause menu
+    //Fields for pause border
     private TextButton btnPause;
     private PauseMenu pauseMenu;
     private ShooterSettingMenu settingMenu;
@@ -176,7 +175,7 @@ public class ShooterScene extends GameScene {
             beats = new Beats();
             MainView.increaseLoadingProgress(1);
 
-            float button_w = 200 * rate;
+            float button_w = 240 * rate;
             float button_h = 48 * rate;
             btnPause = new TextButton("暂停游戏", screen_w - button_w, button_h, button_w, button_h);
             btnPause.setOnPressedListener(this::pauseGame);

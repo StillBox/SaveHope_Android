@@ -6,7 +6,7 @@ import android.view.MotionEvent;
 
 public abstract class GameObject {
 
-    protected float x, y, w, h, offset_x, offset_y;
+    protected float x, y, w, h, offset_x, offset_y, scale = 1f;
 
     public void setX(float x) {
         this.x = x;
@@ -55,6 +55,14 @@ public abstract class GameObject {
         this.offset_y = offset_y;
     }
 
+    public float getScale() {
+        return scale;
+    }
+
+    public void setScale(float scale) {
+        this.scale = scale;
+    }
+
     public abstract void onDestroy();
 
     public abstract void draw(Canvas canvas, Paint paint);
@@ -62,4 +70,10 @@ public abstract class GameObject {
     public abstract void update(int elapsedTime);
 
     public abstract void onTouchEvent(MotionEvent event);
+
+    public static void release(GameObject object) {
+        if (object != null) {
+            object.onDestroy();
+        }
+    }
 }

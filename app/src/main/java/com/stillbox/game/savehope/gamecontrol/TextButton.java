@@ -22,6 +22,14 @@ public class TextButton extends GameControl {
 
     private float text_x, text_y;
 
+    /**
+     * constructor of text button
+     * @param text button text
+     * @param x x-axis location of the left side
+     * @param y y-axis location of the top side
+     * @param w width
+     * @param h height
+     */
     public TextButton(String text, float x, float y, float w, float h) {
 
         this.text = text;
@@ -93,6 +101,11 @@ public class TextButton extends GameControl {
         }
     }
 
+    public void setText(String text) {
+
+        this.text = text;
+    }
+
     public void setTextSize(int textSize) {
 
         this.textSize = textSize;
@@ -123,7 +136,7 @@ public class TextButton extends GameControl {
         this.listener = listener;
     }
 
-    private boolean checkTouchPoint(float touch_x, float touch_y) {
+    public boolean checkTouchPoint(float touch_x, float touch_y) {
 
         return touch_x >= x && touch_x <= x + w && touch_y >= y && touch_y <= y + h;
     }

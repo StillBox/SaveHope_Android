@@ -46,7 +46,14 @@ public abstract class SpriteObject extends GameObject {
     @Override
     public void draw(Canvas canvas, Paint paint) {
 
-        canvas.drawBitmap(sprites.get(currentSprite), x + offset_x, y + offset_y, paint);
+        if (scale != 1f) {
+            canvas.save();
+            canvas.scale(scale, scale, x, y);
+            canvas.drawBitmap(sprites.get(currentSprite), x + offset_x, y + offset_y, paint);
+            canvas.restore();
+        } else {
+            canvas.drawBitmap(sprites.get(currentSprite), x + offset_x, y + offset_y, paint);
+        }
     }
 
     @Override

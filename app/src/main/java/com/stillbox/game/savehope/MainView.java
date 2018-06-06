@@ -18,6 +18,7 @@ import com.stillbox.game.savehope.gamedata.SaveData;
 import com.stillbox.game.savehope.gameenum.GameLevel;
 import com.stillbox.game.savehope.gameenum.GameMode;
 import com.stillbox.game.savehope.gameenum.SceneTitle;
+import com.stillbox.game.savehope.gamemenu.GameMenu;
 import com.stillbox.game.savehope.gameobject.dialog.DialogBox;
 import com.stillbox.game.savehope.gameobject.LoadingBox;
 import com.stillbox.game.savehope.gameobject.SceneCurtain;
@@ -172,7 +173,7 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
         sceneCurtain = new SceneCurtain(0, 0, w, h);
         dialogs = new ArrayList<>();
 
-        setScene(SceneTitle.STORY);
+        setScene(SceneTitle.OPENING);
     }
 
     public void onDestroy() {
@@ -216,7 +217,7 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
 
     public void update(int elapsedTime) {
 
-        GameSound.updateBGM();
+        GameSound.updateBGM(elapsedTime);
 
         while (dialogCount > 0) {
             DialogBox dialog = dialogs.get(dialogCount - 1);
@@ -288,6 +289,14 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
         bInitScene = true;
     }
 
+    public static void setScene(SceneTitle scene, int menuId) {
+
+        MainView.scene = scene;
+        bInitScene = true;
+
+        GameMenu.setCurrentMenuID(menuId);
+    }
+
     public static void setScene(SceneTitle scene, GameMode mode, GameLevel level) {
 
         MainView.scene = scene;
@@ -321,6 +330,8 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
     //methods for curtain
 
     public static void setSceneCurtain(int begAlpha, int endAlpha, int duration, SceneCurtain.OnEndListener listener) {
+
+        GameSound.fadeOut(duration);
 
         sceneCurtain.set(begAlpha, endAlpha, duration, listener);
         sceneCurtain.start();

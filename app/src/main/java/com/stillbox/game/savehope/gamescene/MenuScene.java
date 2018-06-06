@@ -287,7 +287,7 @@ public class MenuScene extends GameScene {
         return false;
     }
 
-    //Inner classes for menu scene
+    //Inner classes for border scene
 
     private class Title {
 
@@ -437,7 +437,7 @@ public class MenuScene extends GameScene {
             bResizeY = false;
             bIsMovable = false;
 
-            bmpMenu = MainView.getBitmap(R.drawable.menu);
+            bmpMenu = MainView.getBitmap(R.drawable.border);
             int width = bmpMenu.getWidth();
             scale = 256f / width * rate;
             npMenu = new NinePatch(bmpMenu, bmpMenu.getNinePatchChunk(), null);
@@ -562,12 +562,6 @@ public class MenuScene extends GameScene {
         }
 
         @Override
-        public void onDestroy() {
-
-            super.onDestroy();
-        }
-
-        @Override
         public void draw(Canvas canvas, Paint paint) {
 
             if (!bIsActive) return;
@@ -599,11 +593,6 @@ public class MenuScene extends GameScene {
             }
 
             super.update(elapsedTime);
-        }
-
-        @Override
-        public void onTouchEvent(MotionEvent event) {
-
         }
 
         int getCharaID() {

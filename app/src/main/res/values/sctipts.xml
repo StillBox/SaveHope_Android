@@ -2,11 +2,14 @@
 <resources>
 
     <string-array name="script_c0">
-        <item>能看到我的信息吗</item>
+        <item>能收到吗</item>
         <item>请帮助我们</item>
-        <item>为了希望和未来</item>
-        <item>超高校级的……</item>
+        <item>希望</item>
+        <item>超高校级的</item>
         <item>游戏玩家</item>
+        <item>绝望</item>
+        <item>未来</item>
+        <item>救援</item>
     </string-array>
 
     <string-array name="script_c1">

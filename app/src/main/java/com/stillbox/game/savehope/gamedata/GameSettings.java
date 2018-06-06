@@ -33,9 +33,9 @@ public class GameSettings {
 
     public static void loadSettings() {
 
-        mainVolume = 100;
-        bgmVolume = 100;
-        seVolume = 100;
+        mainVolume = 6;
+        bgmVolume = 6;
+        seVolume = 6;
 
         controlMode_st = CONTROL_BUTTON;
         scannerAlpha_st = 63;

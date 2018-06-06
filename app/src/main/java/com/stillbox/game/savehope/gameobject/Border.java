@@ -42,7 +42,7 @@ public class Border extends GameObject {
         bIsReady = false;
         bIsClosed = false;
 
-        bmpMenu = MainView.getBitmap(R.drawable.menu);
+        bmpMenu = MainView.getBitmap(R.drawable.border);
         int width = bmpMenu.getWidth();
         scale = 256f / width * rate;
         npMenu = new NinePatch(bmpMenu, bmpMenu.getNinePatchChunk(), null);
@@ -64,6 +64,8 @@ public class Border extends GameObject {
 
     @Override
     public void draw(Canvas canvas, Paint paint) {
+
+        if (isClosed()) return;
 
         canvas.save();
         canvas.scale(scale, scale, x, y);

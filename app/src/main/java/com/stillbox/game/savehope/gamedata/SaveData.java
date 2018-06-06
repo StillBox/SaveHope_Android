@@ -20,9 +20,22 @@ public class SaveData {
 
     public static void readSaveData() {
 
-        currentLevel = GameLevel.EASY;
-        currentChapter = StoryChapter.SNAKE;
+        currentLevel = GameLevel.HARD;
+        currentChapter = StoryChapter.TRUE_END;
         currentCharacter = CharaData.IDC_HINATA;
+
+        stageClear = new int[4];
+        for (int i = 0; i < stageClear.length; i++) {
+            stageClear[i] = 0;
+        }
+
+        elementUnlock = new int[4];
+        for (int i = 0; i < elementUnlock.length; i++) {
+            elementUnlock[i] = 0;
+        }
+
+        hopeFragment = 0;
+        goldFragment = 0;
 
         charaStats = new SparseArray<>();
         for (int id : CharaData.ARR_PLAYABLE_CHARA_ID) {
@@ -42,6 +55,10 @@ public class SaveData {
     }
 
     public static void saveStoryProgress(StoryChapter chapter, GameLevel level) {
+
+        currentChapter = chapter;
+        currentLevel = level;
+
         //TODO
     }
 
@@ -49,11 +66,18 @@ public class SaveData {
         //TODO
     }
 
-    public static void saveClearState(int index) {
+    public static void saveClearState(int index, boolean bClear) {
         //TODO
     }
 
-    public static void saveUnlockState(int index) {
+    public static void saveUnlockState(int index, boolean bUnlock) {
+
+        if (bUnlock) {
+            elementUnlock[index] = 1;
+        } else {
+            elementUnlock[index] = 0;
+        }
+
         //TODO
     }
 

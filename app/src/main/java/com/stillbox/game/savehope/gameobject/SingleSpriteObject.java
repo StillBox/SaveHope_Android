@@ -28,7 +28,14 @@ public class SingleSpriteObject extends GameObject {
     @Override
     public void draw(Canvas canvas, Paint paint) {
 
-        canvas.drawBitmap(sprite, x + offset_x, y + offset_y, paint);
+        if (scale != 1f) {
+            canvas.save();
+            canvas.scale(scale, scale, x, y);
+            canvas.drawBitmap(sprite, x + offset_x, y + offset_y, paint);
+            canvas.restore();
+        } else {
+            canvas.drawBitmap(sprite, x + offset_x, y + offset_y, paint);
+        }
     }
 
     @Override

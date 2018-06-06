@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.stillbox.game.savehope.MainView;
@@ -13,13 +14,14 @@ import java.util.ArrayList;
 
 public class TextBox extends GameObject {
 
+    private static int defaultTextSize;
     private static int timePerChar = 60;
 
     private String text;
     private ArrayList<LineInfo> lineInfos;
 
     private int updateTime;
-    private int updateRate;
+    private float updateRate;
     private int currentChar;
     private int currentLine;
     private boolean bIsTextOver;
@@ -39,7 +41,7 @@ public class TextBox extends GameObject {
 
         lineInfos = new ArrayList<>();
         updateTime = 0;
-        updateRate = 1;
+        updateRate = 1f;
         currentChar = 0;
         currentLine = 0;
         bIsTextOver = false;
@@ -49,18 +51,16 @@ public class TextBox extends GameObject {
         rectText = new RectF(x - w / 2 + borderSize, y - h / 2 + borderSize * 2 / 3,
                 x + w / 2 - borderSize, y + h / 2 - borderSize * 2 / 3);
 
-        textSize = (int) (48f * MainView.rate);
-        float maxHeight = rectText.height() - textSize;
-        maxLines = 1;
-        while (maxHeight >= 1.5f * textSize) {
-            maxHeight -= 1.5f * textSize;
-            maxLines++;
-        }
+        defaultTextSize = (int) (48f * MainView.rate);
+        setTextSize(defaultTextSize);
     }
 
     @Override
     public void onDestroy() {
 
+        border.onDestroy();
+        lineInfos.clear();
+        lineInfos = null;
     }
 
     @Override
@@ -82,7 +82,12 @@ public class TextBox extends GameObject {
             }
             text_x = rectText.left;
             text_y = rectText.top + (1f + 1.5f * (currentLine - begLine)) * textSize;
-            canvas.drawText(text, lineInfos.get(currentLine).begChar, currentChar, text_x, text_y, paint);
+            try {
+                canvas.drawText(text, lineInfos.get(currentLine).begChar, currentChar, text_x, text_y, paint);
+            } catch (IndexOutOfBoundsException e) {
+                Log.e("TextIndex", text + " Line " + currentLine + " info size " + lineInfos.size() + " current char " + currentChar);
+            }
+
 
             if (bIsTextOver) {
 
@@ -102,18 +107,21 @@ public class TextBox extends GameObject {
     public void update(int elapsedTime) {
 
         border.update(elapsedTime);
+
         if (border.isReady()) {
+
             if (!bIsTextOver) {
                 updateTime += updateRate * elapsedTime;
                 while (updateTime >= timePerChar) {
                     updateTime -= timePerChar;
                     currentChar++;
-                }
-                if (currentChar >= text.length()) {
-                    currentChar = text.length();
-                    bIsTextOver = true;
-                } else if (currentChar >= lineInfos.get(currentLine).endChar) {
-                    currentLine++;
+                    if (currentChar >= text.length()) {
+                        currentChar = text.length();
+                        bIsTextOver = true;
+                    } else if (currentChar >= lineInfos.get(currentLine).endChar) {
+                        currentLine++;
+                        currentChar = lineInfos.get(currentLine).begChar;
+                    }
                 }
             } else {
                 updateTime += elapsedTime;
@@ -127,21 +135,21 @@ public class TextBox extends GameObject {
     @Override
     public void onTouchEvent(MotionEvent event) {
 
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            float touch_x = event.getX();
-            float touch_y = event.getY();
-            if (border.checkTouchPoint(touch_x, touch_y)) {
-                updateRate = 10;
-            }
-        }
     }
 
     public void setText(String text) {
 
         this.text = text;
+        setTextSize(defaultTextSize);
+
         updateTime = 0;
+        updateRate = 1f;
         currentChar = 0;
+        currentLine = 0;
+        bIsTextOver = false;
+
         lineInfos.clear();
+        lineInfos = new ArrayList<>();
 
         Paint paint = new Paint();
         paint.setTextSize(textSize);
@@ -168,12 +176,85 @@ public class TextBox extends GameObject {
         lineInfos.add(lineInfo);
     }
 
+    public void setText(String text, int textSize) {
+
+        this.text = text;
+        setTextSize(textSize);
+
+        updateTime = 0;
+        updateRate = 1f;
+        currentChar = 0;
+        currentLine = 0;
+        bIsTextOver = false;
+
+        lineInfos.clear();
+        lineInfos = new ArrayList<>();
+
+        Paint paint = new Paint();
+        paint.setTextSize(textSize);
+        LineInfo lineInfo = new LineInfo();
+        lineInfo.begChar = 0;
+        lineInfo.endChar = 0;
+
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                lineInfo.endChar = i;
+                lineInfos.add(lineInfo);
+                lineInfo = new LineInfo();
+                lineInfo.begChar = i + 1;
+                lineInfo.endChar = i + 1;
+            } else if (paint.measureText(text, lineInfo.begChar, i + 1) > rectText.width()) {
+                lineInfo.endChar = i;
+                lineInfos.add(lineInfo);
+                lineInfo = new LineInfo();
+                lineInfo.begChar = i;
+                lineInfo.endChar = i;
+            }
+        }
+        lineInfo.endChar = text.length();
+        lineInfos.add(lineInfo);
+    }
+
+    public void setTextSize(int textSize) {
+
+        if (this.textSize == textSize)
+            return;
+
+        this.textSize = textSize;
+
+        float maxHeight = rectText.height() - textSize;
+        maxLines = 1;
+        while (maxHeight >= 1.5f * textSize) {
+            maxHeight -= 1.5f * textSize;
+            maxLines++;
+        }
+    }
+
+    public void accelerate(float rate) {
+
+        updateRate = rate;
+    }
+
+    public void open(Border.OnOpenedListener listener) {
+
+        if (border.isClosed()) {
+            border.open(listener);
+        }
+    }
+
+    public void close(Border.OnClosedListener listener) {
+
+        if (border.isReady()) {
+            border.close(listener);
+        }
+    }
+
     public boolean isTextOver() {
 
         return bIsTextOver;
     }
 
-    private boolean checkTouchPoint(float touch_x, float touch_y) {
+    public boolean checkTouchPoint(float touch_x, float touch_y) {
         return border.checkTouchPoint(touch_x, touch_y);
     }
 

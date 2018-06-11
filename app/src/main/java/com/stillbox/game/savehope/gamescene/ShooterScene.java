@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 
 import com.stillbox.game.savehope.MainView;
@@ -16,12 +17,14 @@ import com.stillbox.game.savehope.gamedata.CharaData;
 import com.stillbox.game.savehope.gamedata.GameSettings;
 import com.stillbox.game.savehope.gameenum.GameLevel;
 import com.stillbox.game.savehope.gameenum.GameMode;
+import com.stillbox.game.savehope.gameenum.StoryChapter;
 import com.stillbox.game.savehope.gamemenu.GameMenu;
 import com.stillbox.game.savehope.gamemenu.PauseMenu;
 import com.stillbox.game.savehope.gamemenu.ShooterSettingMenu;
 import com.stillbox.game.savehope.gameobject.SingleSpriteObject;
 import com.stillbox.game.savehope.gameobject.SpriteObject;
-import com.stillbox.game.savehope.gameobject.TextBox;
+import com.stillbox.game.savehope.gameobject.Tutorial;
+import com.stillbox.game.savehope.gameobject.gamepad.GamePad;
 import com.stillbox.game.savehope.gamesound.GameSound;
 
 import java.util.ArrayList;
@@ -54,7 +57,10 @@ public class ShooterScene extends GameScene {
     private static int rows, cols, rowBeg, colBeg;
 
     //Fields for sounds
-    private static final int ID_BGM_INTRO = R.raw.underground;
+    private static final int ID_SE_PERFECT = R.raw.beat01;
+    private static final int ID_SE_GOOD = R.raw.beat02;
+    private static final int ID_SE_BAD = R.raw.beat03;
+
     private static final int ID_BGM = R.raw.ekorosia;
     private static final float BPM = 128.01f;
     private static final float BEG_TIME = 484f;
@@ -76,7 +82,21 @@ public class ShooterScene extends GameScene {
     private static float beatRate;
     private static float actSPB;
 
-    //Fields for pause border
+    private static int poisonGap;
+    private static int debuffGap;
+    private static boolean bAutoDebuff;
+    private static boolean bCombDebuff;
+
+    private static int totalTime;
+    private static int poisonTime;
+    private static int debuffTime;
+
+    //Fields for game tutorial
+    private boolean bIsTutorial;
+    private Tutorial tutorial;
+
+    //Fields for game pause
+    private boolean bOnPauseBtnEvent;
     private TextButton btnPause;
     private PauseMenu pauseMenu;
     private ShooterSettingMenu settingMenu;
@@ -90,12 +110,15 @@ public class ShooterScene extends GameScene {
 
     private ArrayList<Integer> pitcherIds;
 
+    //Fields for game controls
+    private GestureDetector detector;
+    private GamePad gamePad;
+    private static final int ACT_A = 10;
+    private static final int ACT_B = 20;
+
     //Fields for states and timers
     private boolean bIsGameOver;
     private boolean bIsGamePaused;
-
-    private int beatIndex;
-    private int beatTime;
 
     public ShooterScene(GameMode mode, GameLevel level) {
 
@@ -113,18 +136,25 @@ public class ShooterScene extends GameScene {
 
         Thread thread = new Thread(() -> {
 
+            if (gameMode == GameMode.STORY) {
+                bIsTutorial = true;
+                tutorial = new Tutorial(StoryChapter.SHOOTER);
+
+            }
+            MainView.increaseLoadingProgress(1);
+
             pauseMenu = new PauseMenu();
             ((Button) pauseMenu.getControl(PauseMenu.BTN_CONTINUE)).setOnPressedListener(() -> pauseMenu.close(this::continueGame));
             ((Button) pauseMenu.getControl(PauseMenu.BTN_RETRY)).setOnPressedListener(() -> pauseMenu.close(this::continueGame));
             ((Button) pauseMenu.getControl(PauseMenu.BTN_SETTING)).setOnPressedListener(() -> pauseMenu.close(() -> currentMenu = settingMenu));
             ((Button) pauseMenu.getControl(PauseMenu.BTN_MENU)).setOnPressedListener(() ->
-                pauseMenu.close(() -> {
-                    bIsGamePaused = false;
+                    pauseMenu.close(() -> {
+                        bIsGamePaused = false;
                     /*setCurtain(127, 256, 5000, () -> {
                         MainView.mainView.setScene(SceneTitle.MENU);
                         GameMenu.setCurrentMenuID(GameMenu.MENU_SELECT);
                     });*/
-                })
+                    })
             );
 
             MainView.increaseLoadingProgress(1);
@@ -147,21 +177,47 @@ public class ShooterScene extends GameScene {
             switch (gameLevel) {
                 case EASY:
                     beatRate = 2f;
+                    poisonGap = 10;
+                    debuffGap = 20;
+                    poisonTime = 16000;
+                    debuffTime = 5000;
+                    totalTime = 100000;
+                    bAutoDebuff = false;
+                    bCombDebuff = false;
                     break;
                 case NORMAL:
                     beatRate = 1f;
+                    poisonGap = 8;
+                    debuffGap = 16;
+                    poisonTime = 20000;
+                    debuffTime = 10000;
+                    totalTime = 120000;
+                    bAutoDebuff = true;
+                    bCombDebuff = false;
                     break;
                 case HARD:
                     beatRate = 0.5f;
+                    poisonGap = 6;
+                    debuffGap = 12;
+                    poisonTime = 24000;
+                    debuffTime = 16000;
+                    totalTime = 120000;
+                    bAutoDebuff = true;
+                    bCombDebuff = false;
                     break;
                 case IJIME:
                     beatRate = 0.5f;
+                    poisonGap = 5;
+                    debuffGap = 8;
+                    poisonTime = 30000;
+                    debuffTime = 24000;
+                    totalTime = 150000;
+                    bAutoDebuff = true;
+                    bCombDebuff = true;
                     break;
             }
 
             actSPB = BASE_SPB * beatRate;
-            beatIndex = (int) (2 * BASE_SPB / actSPB) + 4;
-            beatTime = (int) (actSPB * beatRate);
 
             map = new GameMap();
             MainView.increaseLoadingProgress(1);
@@ -175,13 +231,49 @@ public class ShooterScene extends GameScene {
             beats = new Beats();
             MainView.increaseLoadingProgress(1);
 
-            float button_w = 240 * rate;
-            float button_h = 48 * rate;
-            btnPause = new TextButton("暂停游戏", screen_w - button_w, button_h, button_w, button_h);
+            gamePad = new GamePad();
+            gamePad.addButton(ACT_A, screen_w - 3.5f * GamePad.buttonRadius, screen_h - 1.5f * GamePad.buttonRadius, 0xFFFF4444, "A",
+                    new GamePad.PadButtonListener() {
+                        @Override
+                        public void OnPressed() {
+
+                        }
+
+                        @Override
+                        public void OnReleased() {
+
+                        }
+                    });
+            gamePad.addButton(ACT_B, screen_w - 1.5f * GamePad.buttonRadius, screen_h - 3.5f * GamePad.buttonRadius, 0xFF4444FF, "B",
+                    new GamePad.PadButtonListener() {
+
+                        @Override
+                        public void OnPressed() {
+
+                        }
+
+                        @Override
+                        public void OnReleased() {
+
+                        }
+                    });
+
+            float button_w = 384 * rate;
+            float button_h = 128 * rate;
+            btnPause = new TextButton("暂停游戏", screen_w - button_w, 0, button_w, button_h);
+            btnPause.setTextSize((int) (64f * MainView.rate));
             btnPause.setOnPressedListener(this::pauseGame);
+            bOnPauseBtnEvent = false;
+            MainView.increaseLoadingProgress(1);
+
+            GameSound.addSE(ID_SE_PERFECT, ID_SE_PERFECT);
+            GameSound.addSE(ID_SE_GOOD, ID_SE_GOOD);
+            GameSound.addSE(ID_SE_BAD, ID_SE_BAD);
+            MainView.increaseLoadingProgress(1);
 
             GameSound.createBGM(ID_BGM, ID_BGM, true);
-            GameSound.startBGM(ID_BGM);
+            if (!bIsTutorial)
+                GameSound.startBGM(ID_BGM);
             MainView.increaseLoadingProgress(1);
 
             MainView.endLoadingProgress();
@@ -210,10 +302,19 @@ public class ShooterScene extends GameScene {
         }
 
         map.draw(canvas, paint);
-        scanner.draw(canvas, paint);
-
         player.draw(canvas, paint);
+
+        if (bIsTutorial) {
+            tutorial.draw(canvas, paint);
+            return;
+        }
+
+        scanner.draw(canvas, paint);
         beats.draw(canvas, paint);
+
+        if (controlMode == GameSettings.CONTROL_BUTTON) {
+            gamePad.draw(canvas, paint);
+        }
 
         btnPause.draw(canvas, paint);
     }
@@ -226,16 +327,17 @@ public class ShooterScene extends GameScene {
             return;
         }
 
-        int elapsedBgmTime =  GameSound.getCurrentPosition() - currentTime;
-        currentTime = GameSound.getCurrentPosition();
-
-        beatTime += elapsedBgmTime;
-        if (beatIndex < 100) {
-            while (beatTime >= actSPB) {
-                beats.addBeat(beatIndex++);
-                beatTime -= actSPB;
+        if (bIsTutorial) {
+            tutorial.update(elapsedTime);
+            if (tutorial.isOver()) {
+                bIsTutorial = false;
+                GameSound.startBGM(ID_BGM);
             }
+            return;
         }
+
+        int elapsedBgmTime = GameSound.getCurrentPosition() - currentTime;
+        currentTime = GameSound.getCurrentPosition();
 
         player.update(elapsedBgmTime);
         beats.update(elapsedBgmTime);
@@ -246,9 +348,24 @@ public class ShooterScene extends GameScene {
 
         if (bIsGamePaused) {
             currentMenu.onTouchEvent(event);
+        } else if (bIsTutorial) {
+            tutorial.onTouchEvent(event);
         } else {
-            btnPause.onTouchEvent(event);
-
+            float touch_x = event.getX();
+            float touch_y = event.getY();
+            if (event.getAction() == MotionEvent.ACTION_DOWN && btnPause.checkTouchPoint(touch_x, touch_y)) {
+                bOnPauseBtnEvent = true;
+            }
+            if (bOnPauseBtnEvent) {
+                btnPause.onTouchEvent(event);
+            } else {
+                if (controlMode == GameSettings.CONTROL_BUTTON && gamePad != null) {
+                    gamePad.onTouchEvent(event);
+                }
+            }
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                bOnPauseBtnEvent = false;
+            }
         }
     }
 
@@ -616,8 +733,19 @@ public class ShooterScene extends GameScene {
         static final int BEAT_DEBUFF_SHINE = 31;
         static final int BEAT_HIDDEN_SHINE = 41;
 
+        private float bad_left;
+        private float bad_right;
+        private float good_left;
+        private float good_right;
+        private float perfect_left;
+        private float perfect_right;
+        private float perfect_center;
+
         private ArrayList<Pitcher> pitchers;
-        private ArrayList<BeatData> beatData;
+        private ArrayList<BeatState> beatStates;
+
+        private int beatCount;
+        private int currentBeat;
 
         public Beats() {
 
@@ -644,8 +772,24 @@ public class ShooterScene extends GameScene {
             addState(BEAT_DEBUFF_SHINE, STATE_SINGLE, 0, BEAT_DEBUFF_SHINE);
             addState(BEAT_HIDDEN_SHINE, STATE_SINGLE, 0, BEAT_HIDDEN_SHINE);
 
+            bad_left = spacing * (colBeg + 11);
+            good_left = spacing * spacing * (colBeg + 13);
+            perfect_left = spacing * (colBeg + 14);
+            perfect_center = spacing * (colBeg + 15);
+            perfect_right = spacing * (colBeg + 16);
+            good_right = spacing * (colBeg + 17);
+            bad_right = spacing * (colBeg + 18);
+
             pitchers = new ArrayList<>();
-            beatData = new ArrayList<>();
+            beatStates = new ArrayList<>();
+
+            int beatBegin = (int) (BASE_SPB * 2 / actSPB) + 4;
+            int beatEnd = (int) ((totalTime - BEG_TIME) / actSPB);
+            beatCount = beatEnd - beatBegin;
+            for (int i = beatBegin; i < beatEnd; i++) {
+                addBeat(i);
+            }
+            currentBeat = 0;
         }
 
         @Override
@@ -656,8 +800,8 @@ public class ShooterScene extends GameScene {
             pitchers.clear();
             pitchers = null;
 
-            beatData.clear();
-            beatData = null;
+            beatStates.clear();
+            beatStates = null;
 
             super.onDestroy();
         }
@@ -672,10 +816,19 @@ public class ShooterScene extends GameScene {
                 }
             }
 
-            for (BeatData data : beatData) {
-                if (data.bActive) {
-                    setState(data.type);
-                    setPosition(data.x, data.y);
+            for (int i = currentBeat; i < beatStates.size(); i++) {
+                BeatState state = beatStates.get(i);
+                if (state.bActive) {
+                    setState(state.x >= bad_left ? state.type + 1 : state.type);
+                    setPosition(state.x, state.y);
+                    super.draw(canvas, paint);
+                }
+            }
+
+            for (BeatState state : beatStates) {
+                if (state.bActive) {
+                    setState(state.x >= bad_left ? state.type + 1 : state.type);
+                    setPosition(state.x, state.y);
                     super.draw(canvas, paint);
                 }
             }
@@ -684,21 +837,30 @@ public class ShooterScene extends GameScene {
         @Override
         public void update(int elapsedTime) {
 
-            for (BeatData data : beatData) {
-                if (data.bIn && currentTime >= data.begTime + adjustTime - 2 * actSPB) {
-                    pitchers.add(new Pitcher(data.row, Pitcher.PITCHER_NORMAL));
-                    data.bIn = false;
+            for (int i = currentBeat; i < beatStates.size(); i++) {
+
+                BeatState state = beatStates.get(i);
+
+                if (state.bIn && currentTime >= state.begTime + adjustTime - 2 * actSPB) {
+                    pitchers.add(new Pitcher(state.row, Pitcher.PITCHER_NORMAL));
+                    state.bIn = false;
                 }
-                if (currentTime >= data.begTime + adjustTime) {
-                    if (data.bPitch) {
-                        data.bActive = true;
-                        data.bPitch = false;
+
+                if (currentTime >= state.begTime + adjustTime) {
+                    if (state.bPitch) {
+                        state.bActive = true;
+                        state.bPitch = false;
                     }
-                    data.x = spacing * (colBeg + 3f + 12f * (currentTime - data.begTime - adjustTime) / 4 / actSPB);
+                    state.x = spacing * (colBeg + 3f + 12f * (currentTime - state.begTime - adjustTime) / 4 / actSPB);
                 }
-                if (MainView.bIsDebugMode) {
-                    if (currentTime >= data.beatTime + adjustTime) {
-                        data.bActive = false;
+
+                if (state.bActive) {
+                    if (MainView.bIsDebugMode) {
+                        if (currentTime >= state.beatTime + adjustTime) {
+                            GameSound.playSE(ID_SE_PERFECT);
+                            state.bActive = false;
+                            currentBeat++;
+                        }
                     }
                 }
             }
@@ -712,31 +874,38 @@ public class ShooterScene extends GameScene {
             }
         }
 
-        public void addBeat(int index) {
+        void addBeat(int index) {
 
-            BeatData data = new BeatData();
+            BeatState state = new BeatState();
 
-            data.row = rowBeg + 4 + (int) (Math.random() * 4f);
-            data.type = BEAT_NORMAL;
+            state.row = rowBeg + 4 + (int) (Math.random() * 4f);
+            state.type = BEAT_NORMAL;
 
-            data.beatTime = (long) (BEG_TIME + index * actSPB);
-            data.begTime = (long) (BEG_TIME + (index - 4) * actSPB);
-            data.lastTime = (long) actSPB;
-            data.x = 0f;
-            data.y = spacing * (data.row + 0.5f);
-            data.bIn = true;
-            data.bPitch = true;
-            data.bActive = false;
+            state.beatTime = (int) (BEG_TIME + index * actSPB);
+            state.begTime = (int) (BEG_TIME + (index - 4) * actSPB);
+            state.lastTime = (int) actSPB;
+            state.x = 0f;
+            state.y = spacing * (state.row + 0.5f);
+            state.bIn = true;
+            state.bPitch = true;
+            state.bActive = false;
 
-            beatData.add(data);
+            beatStates.add(state);
         }
 
-        class BeatData {
+        void checkBeat(int action) {
+
+            BeatState state = beatStates.get(currentBeat);
+            if (!state.bActive) return;
+
+        }
+
+        class BeatState {
             int type;
             int row;
-            long begTime;
-            long beatTime;
-            long lastTime;
+            int begTime;
+            int beatTime;
+            int lastTime;
             float x;
             float y;
             boolean bIn;
@@ -761,27 +930,28 @@ public class ShooterScene extends GameScene {
 
         void draw(Canvas canvas, Paint paint) {
 
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < 7; i++) {
 
                 int color = Color.WHITE;
                 switch (i) {
                     case 0:
-                    case 5:
+                    case 1:
+                    case 6:
                         color = 0xFF888800;
                         break;
-                    case 1:
-                    case 4:
+                    case 2:
+                    case 5:
                         color = 0xFF008800;
                         break;
-                    case 2:
                     case 3:
+                    case 4:
                         color = 0xFF000088;
                         break;
                 }
                 paint.setColor(color);
                 paint.setAlpha(alpha);
 
-                int col = colBeg + COLS_MIN - 8 + i;
+                int col = colBeg + COLS_MIN - 9 + i;
                 for (int row = rowBeg + 4; row < rowBeg + 8; row++) {
 
                     RectF rectScanner = new RectF(spacing * col, spacing * row,

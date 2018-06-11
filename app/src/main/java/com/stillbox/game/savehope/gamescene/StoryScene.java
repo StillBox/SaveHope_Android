@@ -36,7 +36,6 @@ public class StoryScene extends GameScene {
     private static final int BGM_MIRAI = R.raw.mirai;
     private static final int BGM_DISTRUST = R.raw.distrust;
     private static final int BGM_UNLOCK = R.raw.stage_unlock;
-    private static final int SE_TEXT = R.raw.text;
     private static final float BPM = 128.01f;
     private static final float BASE_SPB = 60000f / BPM;
 
@@ -65,19 +64,22 @@ public class StoryScene extends GameScene {
         int maxProgress = 0;
         switch (chapter) {
             case INTRO:
-                maxProgress = 1;
+                maxProgress = 8;
                 break;
             case SHOOTER:
-                maxProgress = 1;
+                maxProgress = 7;
                 break;
             case SNAKE:
-                maxProgress = 1;
+                maxProgress = 6;
                 break;
             case UPSTAIRS:
-                maxProgress = 1;
+                maxProgress = 7;
                 break;
             case END:
-                maxProgress = 1;
+                maxProgress = 8;
+                break;
+            case TRUE_END:
+                maxProgress = 8;
                 break;
         }
         MainView.setLoadingProgress(maxProgress, 0);
@@ -98,14 +100,12 @@ public class StoryScene extends GameScene {
             }
             MainView.increaseLoadingProgress(1);
 
-            GameSound.addSE(SE_TEXT, SE_TEXT);
-            MainView.increaseLoadingProgress(1);
-
             switch (chapter) {
 
                 case INTRO:
 
                     introBackground = new IntroBackground();
+                    MainView.increaseLoadingProgress(1);
 
                 case SHOOTER:
 
@@ -239,7 +239,7 @@ public class StoryScene extends GameScene {
             float button_w = 320 * rate;
             float button_h = 128 * rate;
             btnSkip = new TextButton("跳过剧情", screen_w - button_w, 0, button_w, button_h);
-            btnSkip.setTextSize((int) (48f * rate));
+            btnSkip.setTextSize((int) (64f * rate));
             btnSkip.setOnPressedListener(() -> bIsReadyToClose = true);
             MainView.increaseLoadingProgress(1);
 
@@ -262,7 +262,6 @@ public class StoryScene extends GameScene {
             }
             characters.clear();
         }
-        GameSound.releaseSE();
         GameSound.releaseBGM();
     }
 
@@ -305,6 +304,7 @@ public class StoryScene extends GameScene {
             if (bIsReadyForNext) {
 
                 currentIndex++;
+                bIsReadyForNext = false;
 
                 if (currentIndex == scripts.length) {
                     bIsReadyToClose = true;
@@ -430,7 +430,6 @@ public class StoryScene extends GameScene {
                         }
                         break;
                 }
-                bIsReadyForNext = false;
             }
 
             if (bIsReadyToClose && !bIsChapterOver) {
@@ -528,7 +527,7 @@ public class StoryScene extends GameScene {
             float touch_y = event.getY();
             if (event.getAction() == MotionEvent.ACTION_DOWN && !btnSkip.checkTouchPoint(touch_x, touch_y)) {
                 if (textBox.isTextOver()) {
-                    GameSound.playSE(SE_TEXT);
+                    GameSound.playSE(GameSound.ID_SE_TEXT);
                     bIsReadyForNext = true;
                 } else {
                     textBox.accelerate(16f);

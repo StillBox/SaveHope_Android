@@ -126,6 +126,11 @@ public class IntroLoopBGM extends BGM {
     }
 
     @Override
+    public boolean isPlaying() {
+        return introPlayer.isPlaying() || firstPlayer.isPlaying() || secondPlayer.isPlaying();
+    }
+
+    @Override
     public int getDuration() {
         return duration_intro + duration;
     }

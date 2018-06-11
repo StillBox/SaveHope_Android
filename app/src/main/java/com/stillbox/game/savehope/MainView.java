@@ -173,7 +173,7 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
         sceneCurtain = new SceneCurtain(0, 0, w, h);
         dialogs = new ArrayList<>();
 
-        setScene(SceneTitle.OPENING);
+        setScene(SceneTitle.SHOOTER);
     }
 
     public void onDestroy() {

@@ -18,6 +18,8 @@ public abstract class BGM {
 
     public abstract void seekTo(int msec);
 
+    public abstract boolean isPlaying();
+
     public abstract int getDuration();
 
     public abstract int getCurrentPosition();

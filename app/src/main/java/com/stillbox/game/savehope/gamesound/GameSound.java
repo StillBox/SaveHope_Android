@@ -21,6 +21,8 @@ public class GameSound {
     public static final int ID_SE_DECIDE = R.raw.decide;
     public static final int ID_SE_CANCEL = R.raw.cancel;
     public static final int ID_SE_SELECT = R.raw.select;
+    public static final int ID_SE_SCORE = R.raw.score;
+    public static final int ID_SE_TEXT = R.raw.text;
 
     public static float mainVolume = 1f;
     public static float bgmVolume = 1f;
@@ -37,12 +39,17 @@ public class GameSound {
     private static SparseIntArray ses;
     private static SparseIntArray uises;
 
+    //Fields for control
+    private static boolean bIsBgmPlaying;
+
     public static void init() {
 
         mainVolume = (float) GameSettings.mainVolume / 10f;
         bgmVolume = (float) GameSettings.bgmVolume / 10f;
         seVolume = (float) GameSettings.seVolume / 10f;
+
         bgms = new SparseArray<>();
+
         ses = new SparseIntArray();
         uises = new SparseIntArray();
         soundPool = new SoundPool(4, AudioManager.STREAM_MUSIC, 100);
@@ -51,6 +58,10 @@ public class GameSound {
         uises.put(ID_SE_DECIDE, uiSoundPool.load(MainView.mainView.getContext(), ID_SE_DECIDE, 1));
         uises.put(ID_SE_CANCEL, uiSoundPool.load(MainView.mainView.getContext(), ID_SE_CANCEL, 1));
         uises.put(ID_SE_SELECT, uiSoundPool.load(MainView.mainView.getContext(), ID_SE_SELECT, 1));
+        uises.put(ID_SE_SCORE, uiSoundPool.load(MainView.mainView.getContext(), ID_SE_SCORE, 1));
+        uises.put(ID_SE_TEXT, uiSoundPool.load(MainView.mainView.getContext(), ID_SE_TEXT, 1));
+
+        bIsBgmPlaying = false;
     }
 
     public static void release() {
@@ -59,6 +70,7 @@ public class GameSound {
         releaseSE();
         uiSoundPool.release();
         uises.clear();
+        bIsBgmPlaying = false;
     }
 
     //Methods for BGM
@@ -67,20 +79,37 @@ public class GameSound {
         stopBGM();
         currentBgm = bgmid;
         bgms.get(bgmid).start();
+        bIsBgmPlaying = true;
     }
 
     public static void startBGM() {
         bgms.get(currentBgm).start();
+        bIsBgmPlaying = true;
     }
 
     public static void pauseBGM() {
         bgms.get(currentBgm).pause();
+        bIsBgmPlaying = false;
     }
 
     public static void stopBGM() {
         for (int i = 0; i < bgms.size(); i++)
             bgms.valueAt(i).stop();
         timer = null;
+        bIsBgmPlaying = false;
+    }
+
+    public static boolean isBgmPlaying() {
+        return bIsBgmPlaying;
+    }
+
+    public static boolean isBgmPlaying(int bgmid) {
+        BGM bgm = bgms.get(bgmid);
+        if (bgm == null) {
+            return false;
+        } else {
+            return bgm.isPlaying();
+        }
     }
 
     public static int getDuration(int bgmid) {
@@ -101,6 +130,19 @@ public class GameSound {
             bgms.valueAt(i).release();
         bgms.clear();
         timer = null;
+        bIsBgmPlaying = false;
+    }
+
+    public static void releaseBGM(int bgmid) {
+
+        BGM bgm = bgms.get(bgmid);
+        if (bgm != null) {
+            bgm.release();
+            bgms.remove(bgmid);
+        }
+        if (currentBgm == bgmid) {
+            bIsBgmPlaying = false;
+        }
     }
 
     public static void updateBGM(int elapsedTime) {
@@ -161,7 +203,7 @@ public class GameSound {
             soundPool.play(soundId, volume, volume, 0, 0, 1);
         }
     }
-    
+
     public static void releaseSE() {
 
         soundPool.release();

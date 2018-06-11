@@ -85,6 +85,11 @@ public class LoopBGM extends BGM {
     }
 
     @Override
+    public boolean isPlaying() {
+        return firstPlayer.isPlaying() || secondPlayer.isPlaying();
+    }
+
+    @Override
     public int getDuration() {
         return duration;
     }

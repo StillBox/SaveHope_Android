@@ -42,6 +42,11 @@ public class SingleBGM extends BGM {
     }
 
     @Override
+    public boolean isPlaying() {
+        return firstPlayer.isPlaying();
+    }
+
+    @Override
     public int getDuration() {
         return duration;
     }

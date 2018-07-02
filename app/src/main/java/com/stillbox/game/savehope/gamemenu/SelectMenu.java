@@ -1,22 +1,17 @@
 package com.stillbox.game.savehope.gamemenu;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.view.MotionEvent;
 
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
 import com.stillbox.game.savehope.gamecontrol.Button;
-import com.stillbox.game.savehope.gamecontrol.GameControl;
-import com.stillbox.game.savehope.gamedata.SaveData;
+import com.stillbox.game.savehope.gamedata.savedata.SaveData;
 import com.stillbox.game.savehope.gameenum.SceneTitle;
 import com.stillbox.game.savehope.gameenum.StoryChapter;
 import com.stillbox.game.savehope.gameobject.dialog.ContinueDialog;
 import com.stillbox.game.savehope.gameobject.dialog.LevelSelectDialog;
 import com.stillbox.game.savehope.gamescene.MenuScene;
 import com.stillbox.game.savehope.gamesound.GameSound;
-
-import java.util.ArrayList;
 
 public class SelectMenu extends GameMenu {
 

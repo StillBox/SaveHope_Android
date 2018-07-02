@@ -11,7 +11,7 @@ import com.stillbox.game.savehope.R;
 import com.stillbox.game.savehope.gamecontrol.GameControl;
 import com.stillbox.game.savehope.gamecontrol.TextButton;
 import com.stillbox.game.savehope.gamedata.CharaData;
-import com.stillbox.game.savehope.gamedata.SaveData;
+import com.stillbox.game.savehope.gamedata.savedata.SaveData;
 import com.stillbox.game.savehope.gameenum.GameLevel;
 import com.stillbox.game.savehope.gameenum.GameMode;
 import com.stillbox.game.savehope.gameenum.SceneTitle;

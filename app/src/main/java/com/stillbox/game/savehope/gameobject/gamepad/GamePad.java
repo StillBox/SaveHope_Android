@@ -61,14 +61,18 @@ public class GamePad extends GameObject {
             PadButton button = buttons.valueAt(i);
             PadButtonListener listener = listeners.valueAt(i);
             if ((motion == MotionEvent.ACTION_DOWN || motion == MotionEvent.ACTION_MOVE) && button.checkTouchPoint(touch_x, touch_y)) {
-                button.setPressed(true);
-                if (listener != null) {
-                    listener.OnPressed();
+                if (!button.isPressed()) {
+                    button.setPressed(true);
+                    if (listener != null) {
+                        listener.OnPressed();
+                    }
                 }
             } else {
-                button.setPressed(false);
-                if (listener != null) {
-                    listener.OnReleased();
+                if (button.isPressed()) {
+                    button.setPressed(false);
+                    if (listener != null) {
+                        listener.OnReleased();
+                    }
                 }
             }
         }

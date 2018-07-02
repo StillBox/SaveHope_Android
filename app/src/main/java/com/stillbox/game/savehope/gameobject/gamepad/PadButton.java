@@ -47,6 +47,7 @@ public class PadButton {
         paint.setTypeface(Typeface.DEFAULT_BOLD);
         if (text != null) {
             paint.setTextSize(textSize);
+            paint.setTextAlign(Paint.Align.CENTER);
             canvas.drawText(text, x, text_y, paint);
         }
         paint.setTypeface(Typeface.DEFAULT);

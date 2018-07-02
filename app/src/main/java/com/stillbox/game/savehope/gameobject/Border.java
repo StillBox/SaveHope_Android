@@ -10,20 +10,46 @@ import android.view.MotionEvent;
 import com.stillbox.game.savehope.MainView;
 import com.stillbox.game.savehope.R;
 
+import java.util.ArrayList;
+
 public class Border extends GameObject {
 
+    public enum Anchor {
+        LEFT_TOP,
+        LEFT_CENTER,
+        LEFT_BOTTOM,
+        CENTER_TOP,
+        CENTER,
+        CENTER_BOTTOM,
+        RIGHT_TOP,
+        RIGHT_CENTER,
+        RIGHT_BOTTOM
+    }
+
+    private Anchor anchor = Anchor.CENTER;
+
+    private enum Action {
+        OPEN,
+        CLOSE,
+        RESIZE
+    }
+
+    ArrayList<Action> actions;
+
     public static final float BORDER_SIZE = 64f;
+    public static final int DEFAULT_DURATION = 100;
     private float borderSize;
     private float innerWidth;
     private float innerHeight;
+    private float deltaWidth;
+    private float deltaHeight;
+    private float updateTime;
 
-    private boolean bIsOpen;
     private boolean bIsReady;
     private boolean bIsClosed;
     private OnOpenedListener onOpenedListener = null;
     private OnClosedListener onClosedListener = null;
 
-    private float size;
     private float scale;
     private Bitmap bmpMenu;
     private NinePatch npMenu;
@@ -36,11 +62,13 @@ public class Border extends GameObject {
         borderSize = BORDER_SIZE * rate;
         innerWidth = w - 2 * borderSize;
         innerHeight = h - 2 * borderSize;
-        size = 0f;
+        deltaWidth = innerWidth;
+        deltaHeight = innerHeight;
+        updateTime = 0;
 
-        bIsOpen = true;
         bIsReady = false;
-        bIsClosed = false;
+        bIsClosed = true;
+        open(null);
 
         bmpMenu = MainView.getBitmap(R.drawable.border);
         int width = bmpMenu.getWidth();
@@ -70,7 +98,53 @@ public class Border extends GameObject {
         canvas.save();
         canvas.scale(scale, scale, x, y);
 
-        RectF rectF = new RectF(x - w / scale / 2, y - h / scale / 2, x + w / scale / 2, y + h / scale / 2);
+        float left, top, right, bottom;
+
+        switch (anchor) {
+            case LEFT_TOP:
+            case LEFT_CENTER:
+            case LEFT_BOTTOM:
+                left = x;
+                right = x + w / scale;
+                break;
+            case RIGHT_TOP:
+            case RIGHT_CENTER:
+            case RIGHT_BOTTOM:
+                left = x - w / scale;
+                right = x;
+                break;
+            case CENTER_TOP:
+            case CENTER:
+            case CENTER_BOTTOM:
+            default:
+                left = x - w / scale / 2;
+                right = x + w / scale / 2;
+                break;
+        }
+
+        switch (anchor) {
+            case LEFT_TOP:
+            case CENTER_TOP:
+            case RIGHT_TOP:
+                top = y;
+                bottom = y + h / scale;
+                break;
+            case LEFT_BOTTOM:
+            case CENTER_BOTTOM:
+            case RIGHT_BOTTOM:
+                top = y - h / scale;
+                bottom = y;
+                break;
+            case LEFT_CENTER:
+            case CENTER:
+            case RIGHT_CENTER:
+            default:
+                top = y - h / scale / 2;
+                bottom = y + h / scale / 2;
+                break;
+        }
+
+        RectF rectF = new RectF(left, top, right, bottom);
         npMenu.draw(canvas, rectF);
         canvas.restore();
     }
@@ -78,30 +152,71 @@ public class Border extends GameObject {
     @Override
     public void update(int elapsedTime) {
 
-        if (bIsOpen) {
-            if (!bIsReady) {
-                size += elapsedTime * 0.01f;
-                if (size >= 1f) {
-                    size = 1f;
-                    bIsReady = true;
-                    if (onOpenedListener != null)
-                        onOpenedListener.onOpened();
+        if (actions.isEmpty()) return;
+
+        Action currentAction = actions.get(0);
+
+        switch (currentAction) {
+            case OPEN:
+                if (!bIsReady) {
+                    updateTime += elapsedTime;
+                    if (updateTime >= DEFAULT_DURATION) {
+                        updateTime = 0;
+                        w = innerWidth + borderSize * 2;
+                        h = innerHeight + borderSize * 2;
+                        bIsReady = true;
+                        actions.remove(currentAction);
+                        if (onOpenedListener != null) {
+                            onOpenedListener.onOpened();
+                        }
+                    } else {
+                        w = deltaWidth * updateTime / DEFAULT_DURATION + borderSize * 2;
+                        h = deltaHeight * updateTime / DEFAULT_DURATION + borderSize * 2;
+                    }
                 }
-                w = (innerWidth * size + borderSize * 2);
-                h = (innerHeight * size + borderSize * 2);
-            }
-        } else {
-            if (!bIsClosed) {
-                size -= elapsedTime * 0.01f;
-                if (size <= 0f) {
-                    size = 0f;
-                    bIsClosed = true;
-                    if (onClosedListener != null)
-                        onClosedListener.onClosed();
+                break;
+
+            case CLOSE:
+                if (!bIsClosed) {
+                    updateTime += elapsedTime;
+                    if (updateTime > DEFAULT_DURATION) {
+                        updateTime = 0;
+                        w = borderSize * 2;
+                        h = borderSize * 2;
+                        deltaWidth = innerWidth;
+                        deltaHeight = innerHeight;
+                        bIsClosed = true;
+                        actions.remove(currentAction);
+                        if (onClosedListener != null) {
+                            onClosedListener.onClosed();
+                        }
+                    } else {
+                        w = deltaWidth - deltaWidth * updateTime / DEFAULT_DURATION + borderSize * 2;
+                        h = deltaHeight - deltaHeight * updateTime / DEFAULT_DURATION + borderSize * 2;
+                    }
                 }
-                w = (innerWidth * size + borderSize * 2);
-                h = (innerHeight * size + borderSize * 2);
-            }
+                break;
+
+            case RESIZE:
+                if (!bIsReady) {
+                    updateTime += elapsedTime;
+                    if (updateTime > DEFAULT_DURATION) {
+                        updateTime = 0;
+                        w = innerWidth + borderSize * 2;
+                        h = innerHeight + borderSize * 2;
+                        deltaWidth = innerWidth;
+                        deltaHeight = innerHeight;
+                        bIsReady = true;
+                        actions.remove(currentAction);
+                        if (onOpenedListener != null) {
+                            onOpenedListener.onOpened();
+                        }
+                    }
+                } else {
+                    w = innerWidth - deltaWidth + deltaWidth * updateTime / DEFAULT_DURATION + borderSize * 2;
+                    h = innerHeight - deltaHeight + deltaHeight * updateTime / DEFAULT_DURATION + borderSize * 2;
+                }
+                break;
         }
     }
 
@@ -110,17 +225,38 @@ public class Border extends GameObject {
 
     }
 
+    public void setAnchor(Anchor anchor) {
+
+        this.anchor = anchor;
+    }
+
     public void open(OnOpenedListener listener) {
 
+        actions.add(Action.OPEN);
         onOpenedListener = listener;
-        bIsOpen = true;
         bIsClosed = false;
     }
 
     public void close(OnClosedListener listener) {
 
+        actions.add(Action.CLOSE);
         onClosedListener = listener;
-        bIsOpen = false;
+        bIsReady = false;
+    }
+
+    public void resize(float w, float h, boolean bClose, OnOpenedListener listener) {
+
+        if (bClose) {
+            actions.add(Action.CLOSE);
+            actions.add(Action.OPEN);
+        } else {
+            actions.add(Action.RESIZE);
+            deltaWidth = w - borderSize * 2 - innerWidth;
+            deltaHeight = h - borderSize * 2 - innerHeight;
+            innerWidth = w - borderSize * 2;
+            innerHeight = h - borderSize * 2;
+        }
+        onOpenedListener = listener;
         bIsReady = false;
     }
 

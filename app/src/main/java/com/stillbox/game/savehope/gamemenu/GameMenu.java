@@ -145,4 +145,10 @@ public abstract class GameMenu {
     public final float getRegionBottom() {
         return regionBottom;
     }
+
+    public static void release(GameMenu menu) {
+        if (menu != null) {
+            menu.onDestroy();
+        }
+    }
 }

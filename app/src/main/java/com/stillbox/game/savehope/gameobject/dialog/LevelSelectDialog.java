@@ -1,7 +1,7 @@
 package com.stillbox.game.savehope.gameobject.dialog;
 
 import com.stillbox.game.savehope.MainView;
-import com.stillbox.game.savehope.gamedata.SaveData;
+import com.stillbox.game.savehope.gamedata.savedata.SaveData;
 import com.stillbox.game.savehope.gameenum.GameLevel;
 import com.stillbox.game.savehope.gameenum.GameMode;
 import com.stillbox.game.savehope.gameenum.SceneTitle;

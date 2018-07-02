@@ -9,7 +9,7 @@ import android.view.MotionEvent;
 
 import com.stillbox.game.savehope.MainView;
 
-public abstract class SpriteObject extends GameObject {
+public class SpriteObject extends GameObject {
 
     //State loop type
     public static final int STATE_SINGLE = 0;
@@ -45,6 +45,8 @@ public abstract class SpriteObject extends GameObject {
 
     @Override
     public void draw(Canvas canvas, Paint paint) {
+
+        if (currentSprite == -1) return;
 
         if (scale != 1f) {
             canvas.save();
@@ -140,6 +142,11 @@ public abstract class SpriteObject extends GameObject {
             bmpRes.recycle();
             bmpRes = null;
         }
+    }
+
+    public final void setSprite(int id) {
+
+        currentSprite = id;
     }
 
     public final void addState(int id, int loopType, int gapTime, int ...spriteIds) {

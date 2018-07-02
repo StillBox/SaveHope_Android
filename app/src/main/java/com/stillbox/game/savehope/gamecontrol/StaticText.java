@@ -39,6 +39,8 @@ public class StaticText extends GameControl {
     @Override
     public void draw(Canvas canvas, Paint paint) {
 
+        if (text == null) return;
+
         paint.setColor(textColor);
         paint.setTextSize(textSize);
         paint.setTextAlign(textAlign);
@@ -53,6 +55,10 @@ public class StaticText extends GameControl {
     @Override
     public void onTouchEvent(MotionEvent event) {
 
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 
     public void setTextSize(int textSize) {

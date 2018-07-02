@@ -14,7 +14,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.stillbox.game.savehope.gamedata.GameSettings;
-import com.stillbox.game.savehope.gamedata.SaveData;
+import com.stillbox.game.savehope.gamedata.savedata.SaveData;
 import com.stillbox.game.savehope.gameenum.GameLevel;
 import com.stillbox.game.savehope.gameenum.GameMode;
 import com.stillbox.game.savehope.gameenum.SceneTitle;
@@ -173,7 +173,7 @@ public class MainView extends SurfaceView implements SurfaceHolder.Callback, Run
         sceneCurtain = new SceneCurtain(0, 0, w, h);
         dialogs = new ArrayList<>();
 
-        setScene(SceneTitle.SHOOTER);
+        setScene(SceneTitle.SHOOTER, GameMode.STORY, GameLevel.NORMAL);
     }
 
     public void onDestroy() {

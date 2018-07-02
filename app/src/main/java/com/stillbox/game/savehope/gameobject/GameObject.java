@@ -69,7 +69,7 @@ public abstract class GameObject {
 
     public abstract void update(int elapsedTime);
 
-    public abstract void onTouchEvent(MotionEvent event);
+    public void onTouchEvent(MotionEvent event) {}
 
     public static void release(GameObject object) {
         if (object != null) {
